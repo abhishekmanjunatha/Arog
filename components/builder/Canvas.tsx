@@ -24,7 +24,12 @@ export function Canvas() {
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     dragCounter.current++;
-    if (e.dataTransfer.types.includes('elementType') || state.isDragging) {
+    // Check if dragging an element type (from palette or if we're in dragging state)
+    const hasElementType = e.dataTransfer.types.includes('elementtype') || 
+                          e.dataTransfer.types.includes('elementType') ||
+                          e.dataTransfer.types.includes('text/plain') ||
+                          state.isDragging;
+    if (hasElementType) {
       setIsDragOver(true);
     }
   };
@@ -39,10 +44,24 @@ export function Canvas() {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     dragCounter.current = 0;
     setIsDragOver(false);
     
-    const elementType = e.dataTransfer.getData('elementType') as ElementType;
+    // Try to get element type from various data transfer formats
+    let elementType = e.dataTransfer.getData('elementType') as ElementType;
+    if (!elementType) {
+      elementType = e.dataTransfer.getData('elementtype') as ElementType;
+    }
+    if (!elementType) {
+      elementType = e.dataTransfer.getData('text/plain') as ElementType;
+    }
+    
+    // Also check if we have it from state (dragging state)
+    if (!elementType && state.draggedElementType) {
+      elementType = state.draggedElementType;
+    }
+    
     if (elementType) {
       addElement(elementType);
     }
