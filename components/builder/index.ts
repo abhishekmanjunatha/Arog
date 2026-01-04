@@ -11,6 +11,7 @@ export { CanvasElement } from './CanvasElement';
 export { PropertiesPanel } from './PropertiesPanel';
 export { BuilderToolbar } from './BuilderToolbar';
 export { FormRenderer } from './FormRenderer';
+export { DocumentForm } from './DocumentForm';
 
 // Element Components
 export * from './elements';
