@@ -104,6 +104,40 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginTop: 4,
   },
+  // Medical History styles
+  medicalHistoryContainer: {
+    marginVertical: 8,
+    padding: 8,
+    backgroundColor: '#f9fafb',
+    borderRadius: 4,
+  },
+  medicalHistoryLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#374151',
+    marginBottom: 6,
+  },
+  medicalHistoryParagraph: {
+    fontSize: 10,
+    color: '#111827',
+    marginBottom: 4,
+    lineHeight: 1.4,
+  },
+  bulletItem: {
+    flexDirection: 'row',
+    marginBottom: 3,
+    paddingLeft: 8,
+  },
+  bulletPoint: {
+    fontSize: 10,
+    marginRight: 6,
+    color: '#6b7280',
+  },
+  bulletText: {
+    fontSize: 10,
+    color: '#111827',
+    flex: 1,
+  },
 })
 
 interface BuilderPDFDocumentProps {
@@ -222,6 +256,65 @@ export function BuilderPDFDocument({
           <Text style={[styles.customFooterText, { textAlign: alignment }]}>
             {content}
           </Text>
+        </View>
+      )
+    }
+
+    // Handle medical history - rich text with bullets/lists
+    if (element.type === 'medicalHistory') {
+      const value = formData[element.name]
+      if (!value) {
+        return (
+          <View style={[styles.medicalHistoryContainer, { width: widthPercent }]}>
+            <Text style={styles.medicalHistoryLabel}>{element.label}:</Text>
+            <Text style={styles.medicalHistoryParagraph}>—</Text>
+          </View>
+        )
+      }
+
+      // Parse the text to identify bullets, numbered lists, and paragraphs
+      const lines = String(value).split('\n')
+      const renderMedicalHistoryContent = () => {
+        return lines.map((line, idx) => {
+          const trimmedLine = line.trim()
+          
+          // Skip empty lines
+          if (!trimmedLine) return null
+          
+          // Bullet point (starts with - or *)
+          if (/^[-*]\s/.test(trimmedLine)) {
+            return (
+              <View key={idx} style={styles.bulletItem}>
+                <Text style={styles.bulletPoint}>•</Text>
+                <Text style={styles.bulletText}>{trimmedLine.replace(/^[-*]\s/, '')}</Text>
+              </View>
+            )
+          }
+          
+          // Numbered list (starts with number.)
+          if (/^\d+\.\s/.test(trimmedLine)) {
+            const match = trimmedLine.match(/^(\d+)\.\s(.*)/)
+            if (match) {
+              return (
+                <View key={idx} style={styles.bulletItem}>
+                  <Text style={styles.bulletPoint}>{match[1]}.</Text>
+                  <Text style={styles.bulletText}>{match[2]}</Text>
+                </View>
+              )
+            }
+          }
+          
+          // Regular paragraph
+          return (
+            <Text key={idx} style={styles.medicalHistoryParagraph}>{trimmedLine}</Text>
+          )
+        }).filter(Boolean)
+      }
+
+      return (
+        <View style={[styles.medicalHistoryContainer, { width: widthPercent }]}>
+          <Text style={styles.medicalHistoryLabel}>{element.label}:</Text>
+          {renderMedicalHistoryContent()}
         </View>
       )
     }

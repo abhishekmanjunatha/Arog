@@ -20,6 +20,7 @@ import {
   DividerElement,
   ImageElement,
   FooterElement,
+  MedicalHistoryElement,
 } from './elements';
 import { applyPrefillToForm } from '@/lib/prefill-engine.client';
 import { validateSchema } from '@/lib/builder-utils';
@@ -235,6 +236,15 @@ export function FormRenderer({
 
       case 'footer':
         return <FooterElement element={element} />;
+
+      case 'medicalHistory':
+        return (
+          <MedicalHistoryElement
+            {...commonProps}
+            value={formData[element.name] as string}
+            onChange={(value) => handleFieldChange(element.name, value)}
+          />
+        );
 
       default:
         return null;

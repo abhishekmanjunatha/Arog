@@ -14,3 +14,4 @@ export { HeaderElement } from './HeaderElement';
 export { DividerElement } from './DividerElement';
 export { ImageElement } from './ImageElement';
 export { FooterElement } from './FooterElement';
+export { MedicalHistoryElement } from './MedicalHistoryElement';

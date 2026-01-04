@@ -125,10 +125,14 @@ function BasicProperties({ element, onUpdate }: PropertySectionProps) {
 
 // Layout Properties Section - Grid System
 function LayoutProperties({ element, onUpdate }: PropertySectionProps) {
+  const { recalculateLayout } = useBuilder();
+  
   const handlePositionChange = (key: 'width' | 'col', value: number) => {
     onUpdate(element.id, {
       position: { ...element.position, [key]: value },
     });
+    // Auto-recalculate layout when width changes
+    setTimeout(() => recalculateLayout(), 0);
   };
 
   const widthOptions = [
@@ -209,6 +213,18 @@ function LayoutProperties({ element, onUpdate }: PropertySectionProps) {
           </div>
         </div>
       </div>
+
+      {/* Recalculate Layout Button */}
+      <button
+        onClick={() => recalculateLayout()}
+        className="w-full mt-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        <LayoutGrid className="w-4 h-4" />
+        Recalculate Grid Layout
+      </button>
+      <p className="text-xs text-gray-500 mt-1">
+        Auto-arranges elements into rows based on their widths
+      </p>
     </div>
   );
 }
@@ -740,6 +756,74 @@ function TypeSpecificProperties({ element, onUpdate }: PropertySectionProps) {
               className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
             />
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Medical History
+  if (element.type === 'medicalHistory') {
+    return (
+      <div className="space-y-4">
+        <h4 className="text-xs font-semibold text-gray-500 uppercase">Medical History Settings</h4>
+        
+        {/* Format */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Input Format
+          </label>
+          <select
+            value={element.properties.format || 'mixed'}
+            onChange={(e) => handlePropertyChange('format', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          >
+            <option value="paragraph">Paragraph (free text)</option>
+            <option value="bullets">Bullet Points</option>
+            <option value="numbered">Numbered List</option>
+            <option value="mixed">Mixed (auto-detect)</option>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Mixed: Start line with - for bullets or 1. for numbers
+          </p>
+        </div>
+
+        {/* Rows/Height */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Input Height (rows)
+          </label>
+          <input
+            type="number"
+            min={3}
+            max={20}
+            value={element.properties.rows || 6}
+            onChange={(e) => handlePropertyChange('rows', Number(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          />
+        </div>
+
+        {/* Placeholder */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Placeholder Text
+          </label>
+          <textarea
+            value={element.properties.placeholder || ''}
+            onChange={(e) => handlePropertyChange('placeholder', e.target.value)}
+            rows={2}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            placeholder="Enter placeholder text..."
+          />
+        </div>
+
+        {/* Help text for formatting */}
+        <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-800">
+          <strong>Formatting Tips:</strong>
+          <ul className="mt-1 space-y-1">
+            <li>• Start lines with <code className="bg-blue-100 px-1 rounded">-</code> or <code className="bg-blue-100 px-1 rounded">*</code> for bullet points</li>
+            <li>• Start lines with <code className="bg-blue-100 px-1 rounded">1.</code> for numbered lists</li>
+            <li>• Leave a blank line between paragraphs</li>
+          </ul>
         </div>
       </div>
     );

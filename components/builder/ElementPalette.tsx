@@ -19,7 +19,8 @@ import {
   Minus, 
   Heading,
   Image,
-  FileText
+  FileText,
+  ClipboardList
 } from 'lucide-react';
 
 interface ElementItem {
@@ -96,13 +97,21 @@ const ELEMENT_ITEMS: ElementItem[] = [
     description: 'Document footer section',
     icon: <FileText className="w-5 h-5" />,
   },
+  {
+    type: 'medicalHistory',
+    label: 'Medical History',
+    description: 'Rich text with bullets & lists',
+    icon: <ClipboardList className="w-5 h-5" />,
+  },
 ];
 
 export function ElementPalette() {
   const { addElement, dispatch } = useBuilder();
 
   const handleDragStart = (e: React.DragEvent, type: ElementType) => {
-    e.dataTransfer.setData('elementType', type);
+    // Use multiple data formats for cross-browser compatibility
+    e.dataTransfer.setData('application/x-element-type', type);
+    e.dataTransfer.setData('text/plain', type);
     e.dataTransfer.effectAllowed = 'copy';
     dispatch({ type: 'SET_DRAGGING', isDragging: true, elementType: type });
   };

@@ -13,6 +13,7 @@ export type ElementType =
   | 'header'
   | 'image'
   | 'footer'
+  | 'medicalHistory'
 
 export type PrefillSource = 'patient' | 'doctor' | 'appointment' | 'system'
 
@@ -93,6 +94,11 @@ export interface ElementProperties {
   backgroundColor?: string
   paddingTop?: number
   paddingBottom?: number
+  // Medical History properties
+  format?: 'paragraph' | 'bullets' | 'numbered' | 'mixed'
+  maxItems?: number
+  itemPlaceholder?: string
+  allowFormatting?: boolean
 }
 
 export interface BuilderElement {

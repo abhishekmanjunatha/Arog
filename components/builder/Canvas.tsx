@@ -23,13 +23,13 @@ export function Canvas() {
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     dragCounter.current++;
-    // Check if dragging an element type (from palette or if we're in dragging state)
-    const hasElementType = e.dataTransfer.types.includes('elementtype') || 
-                          e.dataTransfer.types.includes('elementType') ||
-                          e.dataTransfer.types.includes('text/plain') ||
-                          state.isDragging;
-    if (hasElementType) {
+    // Check if dragging an element type - use state.isDragging as primary check
+    // dataTransfer.types may vary by browser
+    if (state.isDragging || 
+        e.dataTransfer.types.includes('application/x-element-type') || 
+        e.dataTransfer.types.includes('text/plain')) {
       setIsDragOver(true);
     }
   };
@@ -48,18 +48,15 @@ export function Canvas() {
     dragCounter.current = 0;
     setIsDragOver(false);
     
-    // Try to get element type from various data transfer formats
-    let elementType = e.dataTransfer.getData('elementType') as ElementType;
+    // Primary: use state.draggedElementType (most reliable)
+    let elementType: ElementType | null = state.draggedElementType;
+    
+    // Fallback: try data transfer
     if (!elementType) {
-      elementType = e.dataTransfer.getData('elementtype') as ElementType;
+      elementType = e.dataTransfer.getData('application/x-element-type') as ElementType;
     }
     if (!elementType) {
       elementType = e.dataTransfer.getData('text/plain') as ElementType;
-    }
-    
-    // Also check if we have it from state (dragging state)
-    if (!elementType && state.draggedElementType) {
-      elementType = state.draggedElementType;
     }
     
     if (elementType) {

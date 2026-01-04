@@ -25,7 +25,8 @@ export const ELEMENT_TYPES: ElementType[] = [
   'divider',
   'header',
   'image',
-  'footer'
+  'footer',
+  'medicalHistory'
 ];
 
 /**
@@ -42,7 +43,8 @@ export const ELEMENT_TYPE_LABELS: Record<ElementType, string> = {
   divider: 'Divider',
   header: 'Header',
   image: 'Image',
-  footer: 'Footer'
+  footer: 'Footer',
+  medicalHistory: 'Medical History'
 };
 
 /**
@@ -59,7 +61,8 @@ export const ELEMENT_TYPE_ICONS: Record<ElementType, string> = {
   divider: '➖',
   header: '📌',
   image: '🖼️',
-  footer: '📑'
+  footer: '📑',
+  medicalHistory: '🏥'
 };
 
 /**
@@ -147,6 +150,13 @@ export function createDefaultElement(type: ElementType, existingNames: string[] 
       baseElement.properties.alignment = 'center';
       baseElement.properties.fontSize = 'small';
       baseElement.properties.showLine = true;
+      break;
+    case 'medicalHistory':
+      baseElement.properties.format = 'mixed';
+      baseElement.properties.rows = 6;
+      baseElement.properties.placeholder = 'Enter medical history (use - for bullets, numbers for lists)';
+      baseElement.properties.allowFormatting = true;
+      baseElement.label = 'Medical History';
       break;
     default:
       break;
@@ -361,6 +371,48 @@ export function calculateNextPosition(elements: BuilderElement[]): ElementPositi
     col: 0,
     width: 12
   };
+}
+
+/**
+ * Recalculate grid layout - pack elements into rows based on their widths
+ * This allows elements to share rows if their combined width <= 12
+ */
+export function recalculateGridLayout(elements: BuilderElement[]): BuilderElement[] {
+  if (elements.length === 0) return [];
+  
+  const result: BuilderElement[] = [];
+  let currentRow = 0;
+  let currentCol = 0;
+  
+  for (const element of elements) {
+    const width = element.position?.width ?? 12;
+    
+    // Check if element fits in current row
+    if (currentCol + width > 12) {
+      // Move to next row
+      currentRow++;
+      currentCol = 0;
+    }
+    
+    result.push({
+      ...element,
+      position: {
+        row: currentRow,
+        col: currentCol,
+        width: width
+      }
+    });
+    
+    currentCol += width;
+    
+    // If we've filled the row exactly, move to next
+    if (currentCol === 12) {
+      currentRow++;
+      currentCol = 0;
+    }
+  }
+  
+  return result;
 }
 
 /**

@@ -21,7 +21,10 @@ import {
   Calendar,
   Calculator,
   Minus,
-  Heading
+  Heading,
+  ClipboardList,
+  Image,
+  FileText
 } from 'lucide-react';
 
 interface CanvasElementProps {
@@ -40,6 +43,9 @@ const ELEMENT_ICONS: Record<string, React.ReactNode> = {
   calculated: <Calculator className="w-4 h-4" />,
   divider: <Minus className="w-4 h-4" />,
   header: <Heading className="w-4 h-4" />,
+  image: <Image className="w-4 h-4" />,
+  footer: <FileText className="w-4 h-4" />,
+  medicalHistory: <ClipboardList className="w-4 h-4" />,
 };
 
 export function CanvasElement({ element, index, isSelected }: CanvasElementProps) {
@@ -208,6 +214,28 @@ export function CanvasElement({ element, index, isSelected }: CanvasElementProps
                                   element.properties.calculation === 'age' ? 'Age' : 
                                   'Custom Formula'}
                   </span>
+                </div>
+              ) : element.type === 'medicalHistory' ? (
+                <div className="space-y-2">
+                  <textarea
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                    rows={element.properties.rows || 4}
+                    placeholder={element.properties.placeholder || 'Enter medical history...'}
+                    disabled
+                  />
+                  <div className="text-xs text-gray-500 flex items-center gap-2">
+                    <ClipboardList className="w-3 h-3" />
+                    <span>Format: {element.properties.format || 'mixed'}</span>
+                  </div>
+                </div>
+              ) : element.type === 'image' ? (
+                <div className="flex items-center justify-center p-4 bg-gray-100 rounded-lg border border-dashed border-gray-300">
+                  <Image className="w-8 h-8 text-gray-400" />
+                  <span className="ml-2 text-gray-500 text-sm">Image placeholder</span>
+                </div>
+              ) : element.type === 'footer' ? (
+                <div className="p-2 bg-gray-50 border-t border-gray-200 text-center text-sm text-gray-500">
+                  {element.properties.content || 'Footer content'}
                 </div>
               ) : (
                 <input

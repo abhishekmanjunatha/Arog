@@ -7,7 +7,7 @@
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { BuilderElement, BuilderSchema } from '@/types/builder';
-import { createDefaultElement, generateElementId, calculateNextPosition, generateUniqueFieldName } from '@/lib/builder-utils';
+import { createDefaultElement, generateElementId, calculateNextPosition, generateUniqueFieldName, recalculateGridLayout } from '@/lib/builder-utils';
 import { ElementType } from '@/types/builder';
 
 // Builder State
@@ -30,6 +30,7 @@ type BuilderAction =
   | { type: 'DUPLICATE_ELEMENT'; elementId: string }
   | { type: 'SET_SCHEMA'; schema: BuilderSchema }
   | { type: 'SET_DRAGGING'; isDragging: boolean; elementType?: ElementType | null }
+  | { type: 'RECALCULATE_LAYOUT' }
   | { type: 'UNDO' }
   | { type: 'REDO' }
   | { type: 'CLEAR_ALL' };
@@ -167,6 +168,16 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
       };
     }
 
+    case 'RECALCULATE_LAYOUT': {
+      const recalculatedElements = recalculateGridLayout(state.schema.elements);
+      return {
+        ...state,
+        schema: { ...state.schema, elements: recalculatedElements },
+        undoStack: [...state.undoStack, state.schema],
+        redoStack: [],
+      };
+    }
+
     case 'UNDO': {
       if (state.undoStack.length === 0) return state;
       
@@ -224,6 +235,7 @@ interface BuilderContextType {
   duplicateElement: (elementId: string) => void;
   setSchema: (schema: BuilderSchema) => void;
   getSelectedElement: () => BuilderElement | null;
+  recalculateLayout: () => void;
   undo: () => void;
   redo: () => void;
   clearAll: () => void;
@@ -292,6 +304,10 @@ export function BuilderProvider({ children, initialSchema }: BuilderProviderProp
     dispatch({ type: 'CLEAR_ALL' });
   };
 
+  const recalculateLayout = () => {
+    dispatch({ type: 'RECALCULATE_LAYOUT' });
+  };
+
   const value: BuilderContextType = {
     state,
     dispatch,
@@ -303,6 +319,7 @@ export function BuilderProvider({ children, initialSchema }: BuilderProviderProp
     duplicateElement,
     setSchema,
     getSelectedElement,
+    recalculateLayout,
     undo,
     redo,
     clearAll,
