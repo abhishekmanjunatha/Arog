@@ -10,3 +10,7 @@ export { Canvas } from './Canvas';
 export { CanvasElement } from './CanvasElement';
 export { PropertiesPanel } from './PropertiesPanel';
 export { BuilderToolbar } from './BuilderToolbar';
+export { FormRenderer } from './FormRenderer';
+
+// Element Components
+export * from './elements';
