@@ -64,7 +64,7 @@ export interface ElementPosition {
 export interface ElementProperties {
   placeholder?: string
   options?: string[] // For dropdown/radio
-  calculation?: 'bmi' | 'age' | 'custom' // For calculated fields
+  calculation?: 'bmi' | 'age' | 'age_months' | 'days_between' | 'bsa' | 'ibw' | 'crcl' | 'corrected_calcium' | 'custom' // For calculated fields
   calculationFormula?: string // Custom formula
   helpText?: string
   defaultValue?: string | number

@@ -125,6 +125,113 @@ export function calculateDaysBetween(data: FormData): number | string {
 }
 
 /**
+ * Calculate Body Surface Area (BSA) using Mosteller formula
+ * BSA (m²) = √((height cm × weight kg) / 3600)
+ */
+export function calculateBSA(data: FormData): number | string {
+  const weight = findNumericField(data, ['weight', 'weight_kg', 'body_weight']);
+  const height = findNumericField(data, ['height', 'height_cm', 'body_height']);
+  
+  if (!weight || !height) {
+    return 'Enter weight & height';
+  }
+  
+  if (weight <= 0 || height <= 0) {
+    return 'Invalid values';
+  }
+  
+  const bsa = Math.sqrt((height * weight) / 3600);
+  return Math.round(bsa * 100) / 100;
+}
+
+/**
+ * Calculate Ideal Body Weight (IBW) using Devine formula
+ * Male: IBW = 50 + 2.3 × (height in inches - 60)
+ * Female: IBW = 45.5 + 2.3 × (height in inches - 60)
+ */
+export function calculateIBW(data: FormData): number | string {
+  const height = findNumericField(data, ['height', 'height_cm', 'body_height']);
+  const gender = data['gender'] || data['sex'];
+  
+  if (!height) {
+    return 'Enter height';
+  }
+  
+  if (height <= 0) {
+    return 'Invalid height';
+  }
+  
+  // Convert cm to inches
+  const heightInches = height / 2.54;
+  
+  // Determine gender (default to male if not specified)
+  const isMale = !gender || 
+    String(gender).toLowerCase() === 'male' || 
+    String(gender).toLowerCase() === 'm';
+  
+  let ibw: number;
+  if (isMale) {
+    ibw = 50 + 2.3 * (heightInches - 60);
+  } else {
+    ibw = 45.5 + 2.3 * (heightInches - 60);
+  }
+  
+  // Ensure positive result
+  if (ibw <= 0) {
+    return 'Height too low';
+  }
+  
+  return Math.round(ibw * 10) / 10;
+}
+
+/**
+ * Calculate Creatinine Clearance using Cockcroft-Gault formula
+ * CrCl = ((140 - age) × weight × [0.85 if female]) / (72 × serum creatinine)
+ */
+export function calculateCrCl(data: FormData): number | string {
+  const age = findNumericField(data, ['age', 'patient_age']);
+  const weight = findNumericField(data, ['weight', 'weight_kg', 'body_weight']);
+  const creatinine = findNumericField(data, ['creatinine', 'serum_creatinine', 'scr']);
+  const gender = data['gender'] || data['sex'];
+  
+  if (!age || !weight || !creatinine) {
+    return 'Enter age, weight & creatinine';
+  }
+  
+  if (age <= 0 || weight <= 0 || creatinine <= 0) {
+    return 'Invalid values';
+  }
+  
+  const isMale = !gender || 
+    String(gender).toLowerCase() === 'male' || 
+    String(gender).toLowerCase() === 'm';
+  
+  let crcl = ((140 - age) * weight) / (72 * creatinine);
+  
+  if (!isMale) {
+    crcl *= 0.85;
+  }
+  
+  return Math.round(crcl * 10) / 10;
+}
+
+/**
+ * Calculate Corrected Calcium
+ * Corrected Ca = Measured Ca + 0.8 × (4 - Albumin)
+ */
+export function calculateCorrectedCalcium(data: FormData): number | string {
+  const calcium = findNumericField(data, ['calcium', 'ca', 'serum_calcium']);
+  const albumin = findNumericField(data, ['albumin', 'alb', 'serum_albumin']);
+  
+  if (!calcium || !albumin) {
+    return 'Enter calcium & albumin';
+  }
+  
+  const corrected = calcium + 0.8 * (4 - albumin);
+  return Math.round(corrected * 10) / 10;
+}
+
+/**
  * Calculate sum of numeric fields
  */
 export function calculateSum(data: FormData, fieldNames: string[]): number {
@@ -257,6 +364,10 @@ export const calculationRegistry: CalculationRegistry = {
   age: calculateAge,
   age_months: calculateAgeInMonths,
   days_between: calculateDaysBetween,
+  bsa: calculateBSA,
+  ibw: calculateIBW,
+  crcl: calculateCrCl,
+  corrected_calcium: calculateCorrectedCalcium,
 };
 
 /**
@@ -305,6 +416,26 @@ export function getAvailableCalculations(): { value: string; label: string; desc
       value: 'days_between', 
       label: 'Days Between', 
       description: 'Calculates days between start and end date' 
+    },
+    { 
+      value: 'bsa', 
+      label: 'Body Surface Area', 
+      description: 'Calculates BSA using Mosteller formula' 
+    },
+    { 
+      value: 'ibw', 
+      label: 'Ideal Body Weight', 
+      description: 'Calculates IBW using Devine formula' 
+    },
+    { 
+      value: 'crcl', 
+      label: 'Creatinine Clearance', 
+      description: 'Calculates CrCl using Cockcroft-Gault formula' 
+    },
+    { 
+      value: 'corrected_calcium', 
+      label: 'Corrected Calcium', 
+      description: 'Corrects calcium for low albumin' 
     },
     { 
       value: 'custom', 
