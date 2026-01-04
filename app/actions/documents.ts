@@ -5,7 +5,124 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { DocumentInsert } from '@/types/models'
 import type { TemplateContent } from '@/types/template'
+import type { FormData as BuilderFormData } from '@/types/builder'
 import { prepareDocumentData, substituteVariables } from '@/lib/document-utils'
+
+/**
+ * Create a document from a Builder V2 template
+ */
+export async function createBuilderDocument(data: {
+  templateId: string
+  patientId: string
+  appointmentId: string | null
+  formData: BuilderFormData
+}): Promise<{ id?: string; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'Not authenticated' }
+  }
+
+  // Fetch template
+  const { data: template, error: templateError } = await supabase
+    .from('templates')
+    .select('*')
+    .eq('id', data.templateId)
+    .eq('doctor_id', user.id)
+    .eq('is_active', true)
+    .single()
+
+  if (templateError || !template) {
+    return { error: 'Template not found' }
+  }
+
+  // Verify it's a V2 template
+  if (template.builder_version !== 2) {
+    return { error: 'Template is not a Builder V2 template' }
+  }
+
+  // Fetch patient
+  const { data: patient, error: patientError } = await supabase
+    .from('patients')
+    .select('*')
+    .eq('id', data.patientId)
+    .eq('doctor_id', user.id)
+    .single()
+
+  if (patientError || !patient) {
+    return { error: 'Patient not found' }
+  }
+
+  // Fetch appointment if provided
+  let appointment = null
+  if (data.appointmentId) {
+    const { data: apptData } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('id', data.appointmentId)
+      .eq('doctor_id', user.id)
+      .single()
+
+    appointment = apptData
+  }
+
+  // Fetch doctor profile
+  const { data: doctor } = await supabase
+    .from('doctors')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  // Create the document
+  const newDocument: DocumentInsert = {
+    doctor_id: user.id,
+    patient_id: data.patientId,
+    appointment_id: data.appointmentId || null,
+    template_id: data.templateId,
+    document_name: template.name,
+    document_type: template.category,
+    data_json: {
+      builder_version: 2,
+      form_data: data.formData,
+      template_schema: template.schema_json,
+      patient_info: {
+        id: patient.id,
+        name: patient.name,
+        phone: patient.phone,
+        email: patient.email,
+        date_of_birth: patient.date_of_birth,
+        gender: patient.gender,
+      },
+      doctor_info: doctor ? {
+        id: doctor.id,
+        name: doctor.name,
+        clinic_name: doctor.clinic_name,
+      } : null,
+      appointment_info: appointment ? {
+        id: appointment.id,
+        appointment_date: appointment.appointment_date,
+        appointment_time: appointment.appointment_time,
+        chief_complaint: appointment.chief_complaint,
+      } : null,
+      created_at: new Date().toISOString(),
+    } as any,
+    created_by: user.id,
+  }
+
+  const { data: document, error } = await supabase
+    .from('documents')
+    .insert(newDocument)
+    .select()
+    .single()
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/documents')
+  return { id: document.id }
+}
 
 export async function createDocument(formData: FormData) {
   const supabase = await createClient()

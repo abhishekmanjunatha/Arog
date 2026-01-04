@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/Header'
 import { Card, CardContent } from '@/components/ui/card'
+import { isBuilderV2Enabled } from '@/lib/feature-flags'
+import { Layers, FileText } from 'lucide-react'
 
 export default async function DocumentsPage({
   searchParams,
@@ -35,6 +37,7 @@ export default async function DocumentsPage({
   }
 
   const { data: documents } = await query
+  const builderEnabled = isBuilderV2Enabled()
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -50,9 +53,22 @@ export default async function DocumentsPage({
                   View and manage generated medical documents
                 </p>
               </div>
-              <Link href="/documents/new">
-                <Button size="lg" className="w-full sm:w-auto shadow-md">+ Generate Document</Button>
-              </Link>
+              <div className="flex gap-2">
+                {builderEnabled && (
+                  <Link href="/documents/new/builder">
+                    <Button size="lg" variant="default" className="w-full sm:w-auto shadow-md">
+                      <Layers className="w-4 h-4 mr-2" />
+                      Form Document
+                    </Button>
+                  </Link>
+                )}
+                <Link href="/documents/new">
+                  <Button size="lg" variant={builderEnabled ? "outline" : "default"} className="w-full sm:w-auto shadow-md">
+                    <FileText className="w-4 h-4 mr-2" />
+                    {builderEnabled ? 'Variable Document' : '+ Generate Document'}
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             {patientFilter && (

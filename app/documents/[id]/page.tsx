@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Layers, FileText } from 'lucide-react'
 
 export default async function DocumentDetailPage({
   params,
@@ -34,6 +35,7 @@ export default async function DocumentDetailPage({
 
   const createdDate = new Date(document.created_at)
   const documentData = document.data_json as any
+  const isBuilderV2 = documentData?.builder_version === 2
   const content = documentData?.content || ''
 
   return (
@@ -63,7 +65,20 @@ export default async function DocumentDetailPage({
         <div className="max-w-4xl space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight">Document Details</h2>
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="text-3xl font-bold tracking-tight">Document Details</h2>
+                {isBuilderV2 ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-cyan-100 text-cyan-700 rounded">
+                    <Layers className="w-3 h-3" />
+                    Builder V2
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                    <FileText className="w-3 h-3" />
+                    V1
+                  </span>
+                )}
+              </div>
               <p className="text-muted-foreground">
                 Generated on {createdDate.toLocaleDateString()} at {createdDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
@@ -147,9 +162,42 @@ export default async function DocumentDetailPage({
               <CardTitle>Document Content</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="whitespace-pre-wrap text-sm bg-muted p-6 rounded-md overflow-auto max-h-[800px]">
-                {content}
-              </pre>
+              {isBuilderV2 ? (
+                // Builder V2 - show form fields
+                <div className="space-y-3">
+                  {documentData.template_schema?.elements?.map((element: any, index: number) => {
+                    if (element.type === 'divider') {
+                      return <hr key={index} className="my-4" />
+                    }
+                    if (element.type === 'header') {
+                      return (
+                        <h3 key={index} className="text-lg font-semibold text-cyan-700 mt-4 mb-2">
+                          {element.label}
+                        </h3>
+                      )
+                    }
+                    
+                    const value = documentData.form_data?.[element.name]
+                    const displayValue = value !== undefined && value !== null && value !== '' 
+                      ? String(value) 
+                      : '—'
+                    
+                    return (
+                      <div key={index} className="flex justify-between py-2 border-b border-gray-100">
+                        <span className="text-sm font-medium text-gray-600">{element.label}</span>
+                        <span className={`text-sm ${element.type === 'calculated' ? 'font-semibold text-amber-700' : 'text-gray-900'}`}>
+                          {displayValue}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                // V1 - show text content
+                <pre className="whitespace-pre-wrap text-sm bg-muted p-6 rounded-md overflow-auto max-h-[800px]">
+                  {content}
+                </pre>
+              )}
             </CardContent>
           </Card>
 
