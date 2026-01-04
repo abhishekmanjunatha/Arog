@@ -102,9 +102,25 @@
 - Select template
 - Preview and generate
 
-### 3. Document Templates
+---
 
-**Create Template:**
+## Document Templates
+
+### Template Versions
+
+Arog supports two types of templates:
+
+| Feature | V1 (Variable Template) | V2 (Form Builder) |
+|---------|----------------------|-------------------|
+| Creation | Text with {{variables}} | Drag-and-drop builder |
+| Field Types | Text only | Text, Number, Date, Dropdown, etc. |
+| Prefill | Manual variable mapping | Auto-configured prefill |
+| Calculations | Not supported | BMI, Age, and more |
+| Layout | Free-form text | Grid-based layout |
+| Badge | V1 | Builder V2 |
+
+### Creating V1 Templates (Variable-Based)
+
 1. Go to "Templates" → "Create Template"
 2. Enter template details:
    - Name (e.g., "Standard Prescription")
@@ -116,7 +132,123 @@
    - Example: `Diagnosis: {{appointment.diagnosis}}`
 5. Click "Create Template"
 
-**Available Variables:**
+### Creating V2 Templates (Form Builder) ⭐ NEW
+
+The Form Builder provides a visual drag-and-drop interface for creating sophisticated medical forms.
+
+**Getting Started:**
+1. Go to "Templates" → "Create Builder Template"
+2. Enter template name, category, and description
+3. You'll see the 3-panel builder interface:
+   - **Left Panel:** Element palette (drag elements from here)
+   - **Center Panel:** Canvas (drop and arrange elements)
+   - **Right Panel:** Properties (configure selected element)
+
+**Adding Elements:**
+1. Click or drag an element from the left palette
+2. Element appears on the canvas
+3. Click element to select and configure
+
+**Available Elements:**
+
+| Element | Use Case | Notes |
+|---------|----------|-------|
+| Text Input | Short text fields | Names, IDs, single lines |
+| Number Input | Numeric data | Weight, height, counts |
+| Paragraph | Long text | Notes, history, descriptions |
+| Dropdown | Single selection | Lists with many options |
+| Radio Buttons | Single selection | 2-5 visible options |
+| Date Picker | Dates | Appointments, DOB |
+| Calculated | Auto-calculated | BMI, Age, formulas |
+| Header | Section titles | Organize your form |
+| Divider | Visual separation | Between sections |
+
+**Configuring Elements:**
+Click an element to see its properties:
+- **Label:** Display name users see
+- **Field Name:** Internal name (auto-generated, editable)
+- **Required:** Mark as mandatory
+- **Layout:** Set element width (full, half, third, etc.)
+- **Type-specific options:** Placeholder, options, calculation type
+
+**Grid Layout System:**
+- Forms use a 12-column grid
+- Set element width in Properties → Layout
+- Common widths:
+  - Full width (12/12) - Default
+  - Half width (6/12) - Two fields per row
+  - Third width (4/12) - Three fields per row
+  - Quarter width (3/12) - Four fields per row
+
+**Prefill Configuration:**
+Auto-populate fields with patient/doctor/system data:
+1. Select an element
+2. In Properties, find "Prefill Configuration"
+3. Enable prefill
+4. Select source: Patient, Doctor, Appointment, or System
+5. Select field: e.g., patient_name, doctor_clinic
+6. Enable "Read-only" to prevent editing prefilled values
+
+**Available Prefill Fields:**
+
+| Source | Fields |
+|--------|--------|
+| Patient | name, phone, email, age, gender, id |
+| Doctor | name, clinic, id |
+| Appointment | date, time, id |
+| System | current_date, current_time, place |
+
+**Calculated Fields:**
+Auto-calculate values based on other form fields:
+
+| Calculation | Formula | Required Fields |
+|-------------|---------|-----------------|
+| BMI | weight / (height²) | weight, height (in kg, m) |
+| Age | Years from DOB | date_of_birth |
+| Age in Months | Months from DOB | date_of_birth |
+| Days Between | Date difference | Two date fields |
+| BSA | Body Surface Area | weight, height |
+| Ideal Body Weight | Height-based | height, gender |
+| Creatinine Clearance | Kidney function | age, weight, creatinine, gender |
+| Corrected Calcium | Adjusted calcium | calcium, albumin |
+
+**Saving Templates:**
+1. Click "Save Template" in toolbar
+2. Validation runs automatically:
+   - Errors (red) - Must fix before saving
+   - Warnings (yellow) - Can save, but review recommended
+3. Template saves and you can use it for document generation
+
+**Undo/Redo:**
+- Click undo (↶) to reverse last action
+- Click redo (↷) to restore undone action
+- Works for add, edit, delete, reorder operations
+
+**Preview Form:**
+- Click the eye icon (👁) in toolbar
+- See how the form will look when filling
+- Close preview to return to editing
+
+### Upgrading V1 to V2
+
+If you have existing V1 templates, you can upgrade them:
+
+1. Open the template detail page
+2. Click "Upgrade to V2" button (only shown for V1 templates)
+3. Review the migration preview:
+   - Variables are converted to form elements
+   - Field types are inferred from names
+   - Prefill settings auto-detected where possible
+4. Click "Start Migration"
+5. After migration, edit the template to fine-tune
+
+**Note:** The original template content/layout is not migrated. You may need to configure elements after migration.
+
+---
+
+### V1 Template Variables Reference
+
+For V1 (variable-based) templates, use these placeholders:
 
 *Doctor Variables:*
 - `{{doctor.name}}` - Your name
@@ -152,10 +284,15 @@
 - `{{document.id}}` - Document ID
 - `{{document.created_at}}` - Creation timestamp
 
+---
+
+### Managing Templates
+
 **Edit Template:**
 - Open template detail page
 - Click "Edit"
-- Modify content and variables
+- For V1: Modify content and variables
+- For V2: Use the visual builder
 - Click "Save Changes"
 
 **Deactivate Template:**
@@ -164,29 +301,61 @@
 - Template won't appear in document generation
 - Can be reactivated anytime
 
-### 4. Document Generation
+---
 
-**Generate Document:**
-1. From Dashboard → "Documents" → "Generate Document"
-   - Or from Patient page → "Generate Document"
-   - Or from Appointment page → "Generate Document"
-2. Select template
-3. Select patient (pre-filled if from patient/appointment page)
-4. Select appointment (optional, pre-filled if available)
-5. Preview document with filled data
+## Document Generation
+
+### Generating Documents
+
+**From Dashboard:**
+1. Go to "Documents" → "Generate Document"
+2. Select a template (V1 or V2)
+3. Select patient
+4. Select appointment (optional)
+5. Fill in any additional fields
 6. Click "Generate Document"
 
-**View Document:**
-- Go to "Documents"
-- Click "View" on any document
-- See rendered content
-- Click "Download PDF" to get PDF version
+**From Patient Page:**
+1. Open patient detail
+2. Click "Generate Document"
+3. Patient is pre-selected
+4. Choose template and continue
 
-**Important Notes:**
-- Documents are **immutable** (cannot be edited or deleted)
+**From Appointment Page:**
+1. Open appointment detail
+2. Click "Generate Document"
+3. Patient and appointment are pre-selected
+4. Choose template and continue
+
+### V2 Builder Documents
+
+When using a V2 Builder template:
+1. Fields are displayed as a proper form
+2. Prefilled fields show patient/doctor data automatically
+3. Read-only prefilled fields are locked (gray with lock icon)
+4. Calculated fields update in real-time as you enter data
+5. Required fields are marked with red asterisk
+6. Validation runs before submission
+
+### Viewing Documents
+
+- Go to "Documents" in navigation
+- See list of all generated documents
+- Click to view document details
+- Click "Download PDF" to export
+
+### PDF Export
+
+- PDFs are generated on-demand
+- V2 templates generate professional form-style PDFs
+- Headers, dividers, and sections are properly formatted
+- Calculated values are included in the PDF
+
+**Important:**
+- Documents are **immutable** - cannot be edited or deleted
 - This ensures medical record integrity
-- Always review preview before generating
-- PDFs generated on-demand (not stored)
+- Always review before generating
+- PDFs are generated fresh each time (not stored)
 
 **Filter Documents:**
 - Click patient name in documents list to filter by that patient
@@ -307,5 +476,14 @@ For technical issues:
 
 ---
 
-**Last Updated**: Phase 9 - January 2026
-**Version**: 1.0
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 2.0 | January 2026 | Builder Engine V2 - Drag-and-drop form builder, prefill engine, calculation engine, grid layout, V1-to-V2 migration |
+| 1.0 | December 2025 | Initial release - Patients, Appointments, Templates (V1), Documents, PDF export |
+
+---
+
+**Last Updated**: January 2026 (Builder Engine V2)
+**Version**: 2.0
