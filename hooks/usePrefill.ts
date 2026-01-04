@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PrefillData, BuilderSchema } from '@/types/builder';
 import { fetchPrefillDataAction, getPrefilledFormData } from '@/app/actions/prefill';
-import { getSystemDataClient } from '@/lib/prefill-engine';
+import { getSystemDataClient } from '@/lib/prefill-engine.client';
 
 interface UsePrefillOptions {
   patientId?: string;

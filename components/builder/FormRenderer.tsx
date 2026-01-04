@@ -19,7 +19,7 @@ import {
   HeaderElement,
   DividerElement,
 } from './elements';
-import { applyPrefillToForm } from '@/lib/prefill-engine';
+import { applyPrefillToForm } from '@/lib/prefill-engine.client';
 import { validateSchema } from '@/lib/builder-utils';
 
 interface FormRendererProps {

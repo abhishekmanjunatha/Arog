@@ -8,7 +8,7 @@
 import React from 'react';
 import { useBuilder } from './BuilderContext';
 import { BuilderElement, ElementType, PrefillSource, PrefillField } from '@/types/builder';
-import { PREFILL_FIELDS, formatPrefillSource } from '@/lib/prefill-engine';
+import { PREFILL_FIELDS, formatPrefillSource } from '@/lib/prefill-engine.client';
 import { getAvailableCalculations } from '@/lib/calculation-engine';
 import { canBePrefilled, canBeRequired } from '@/lib/builder-utils';
 import { Settings, Sliders, Zap, AlertCircle, LayoutGrid } from 'lucide-react';

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { BuilderElement, PrefillData } from '@/types/builder';
-import { getPrefillValue, isFieldReadOnly } from '@/lib/prefill-engine';
+import { getPrefillValue, isFieldReadOnly } from '@/lib/prefill-engine.client';
 import { Lock } from 'lucide-react';
 
 interface TextElementProps {

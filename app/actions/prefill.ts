@@ -230,34 +230,6 @@ export async function validateFormSubmission(
   return { valid: true, sanitizedData, errors: [] };
 }
 
-/**
- * Get read-only field names from a schema
- * Useful for frontend to know which fields to disable
- */
-export function getReadOnlyFieldNames(schema: BuilderSchema): string[] {
-  return schema.elements
-    .filter(el => el.prefill?.enabled && el.prefill?.readonly)
-    .map(el => el.name);
-}
-
-/**
- * Get prefill configuration summary for a schema
- * Shows which fields are prefilled and from what source
- */
-export function getPrefillSummary(schema: BuilderSchema): Array<{
-  fieldName: string;
-  fieldLabel: string;
-  source: string;
-  field: string;
-  readonly: boolean;
-}> {
-  return schema.elements
-    .filter(el => el.prefill?.enabled)
-    .map(el => ({
-      fieldName: el.name,
-      fieldLabel: el.label,
-      source: el.prefill!.source,
-      field: el.prefill!.field as string,
-      readonly: el.prefill!.readonly,
-    }));
-}
+// Note: Utility functions like getReadOnlyFieldNames and getPrefillSummary
+// are now in @/lib/prefill-engine.ts since 'use server' files require all
+// exported functions to be async server actions.

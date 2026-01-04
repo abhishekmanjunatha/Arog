@@ -4,7 +4,7 @@
  * Sources: Patient, Doctor, Appointment, System
  */
 
-import { PrefillData, PrefillConfig, PrefillSource, PrefillField } from '@/types/builder';
+import { PrefillData, PrefillConfig, PrefillSource, PrefillField, BuilderSchema } from '@/types/builder';
 import { createClient } from '@/lib/supabase/server';
 
 /**
@@ -351,4 +351,36 @@ export function getPrefillSourceIcon(source: PrefillSource): string {
     system: '⚙️',
   };
   return icons[source];
+}
+
+/**
+ * Get read-only field names from a schema
+ * Useful for frontend to know which fields to disable
+ */
+export function getReadOnlyFieldNames(schema: BuilderSchema): string[] {
+  return schema.elements
+    .filter(el => el.prefill?.enabled && el.prefill?.readonly)
+    .map(el => el.name);
+}
+
+/**
+ * Get prefill configuration summary for a schema
+ * Shows which fields are prefilled and from what source
+ */
+export function getPrefillSummary(schema: BuilderSchema): Array<{
+  fieldName: string;
+  fieldLabel: string;
+  source: string;
+  field: string;
+  readonly: boolean;
+}> {
+  return schema.elements
+    .filter(el => el.prefill?.enabled)
+    .map(el => ({
+      fieldName: el.name,
+      fieldLabel: el.label,
+      source: el.prefill!.source,
+      field: el.prefill!.field as string,
+      readonly: el.prefill!.readonly,
+    }));
 }
