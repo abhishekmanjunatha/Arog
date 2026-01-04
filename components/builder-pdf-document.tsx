@@ -178,26 +178,42 @@ export function BuilderPDFDocument({
     return String(value)
   }
 
-  // Group elements by row for grid layout
-  const groupElementsByRow = (elements: BuilderElement[]) => {
-    const rows: { row: number; elements: BuilderElement[] }[] = []
+  // Calculate rows dynamically based on element widths
+  // This mimics how CSS Grid flows elements (12-column grid)
+  const calculateGridRows = (elements: BuilderElement[]) => {
+    const rows: { elements: BuilderElement[] }[] = []
+    let currentRow: BuilderElement[] = []
+    let currentRowWidth = 0
     
     elements.forEach((element) => {
-      const rowIndex = element.position?.row ?? rows.length
-      const existingRow = rows.find(r => r.row === rowIndex)
+      const elementWidth = element.position?.width ?? 12
       
-      if (existingRow) {
-        existingRow.elements.push(element)
+      // Check if element fits in current row (12 columns total)
+      if (currentRowWidth + elementWidth > 12) {
+        // Element doesn't fit, start a new row
+        if (currentRow.length > 0) {
+          rows.push({ elements: currentRow })
+        }
+        currentRow = [element]
+        currentRowWidth = elementWidth
       } else {
-        rows.push({ row: rowIndex, elements: [element] })
+        // Element fits in current row
+        currentRow.push(element)
+        currentRowWidth += elementWidth
+      }
+      
+      // If we've exactly filled the row, start a new one
+      if (currentRowWidth === 12) {
+        rows.push({ elements: currentRow })
+        currentRow = []
+        currentRowWidth = 0
       }
     })
     
-    // Sort rows by row number and elements within each row by column
-    rows.sort((a, b) => a.row - b.row)
-    rows.forEach(row => {
-      row.elements.sort((a, b) => (a.position?.col ?? 0) - (b.position?.col ?? 0))
-    })
+    // Don't forget the last row if it has elements
+    if (currentRow.length > 0) {
+      rows.push({ elements: currentRow })
+    }
     
     return rows
   }
@@ -331,11 +347,8 @@ export function BuilderPDFDocument({
     )
   }
 
-  const renderRow = (rowData: { row: number; elements: BuilderElement[] }, index: number) => {
+  const renderRow = (rowData: { elements: BuilderElement[] }, index: number) => {
     const { elements: rowElements } = rowData
-    
-    // Calculate total width used in this row
-    const totalWidth = rowElements.reduce((sum, el) => sum + (el.position?.width ?? 12), 0)
     
     // If only one element and it's full width, render directly
     if (rowElements.length === 1 && (rowElements[0].position?.width ?? 12) === 12) {
@@ -363,7 +376,8 @@ export function BuilderPDFDocument({
     )
   }
 
-  const rows = groupElementsByRow(elements)
+  // Calculate rows dynamically based on widths (mimics CSS Grid behavior)
+  const rows = calculateGridRows(elements)
 
   return (
     <Document title={title}>

@@ -3,13 +3,13 @@
 /**
  * Canvas Element
  * Individual element rendered on the canvas
+ * Uses arrow buttons for positioning instead of drag-drop
  */
 
 import React from 'react';
 import { useBuilder } from './BuilderContext';
 import { BuilderElement } from '@/types/builder';
 import { 
-  GripVertical, 
   Trash2, 
   Copy, 
   Lock,
@@ -24,13 +24,18 @@ import {
   Heading,
   ClipboardList,
   Image,
-  FileText
+  FileText,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface CanvasElementProps {
   element: BuilderElement;
   index: number;
   isSelected: boolean;
+  totalElements: number;
 }
 
 const ELEMENT_ICONS: Record<string, React.ReactNode> = {
@@ -48,9 +53,11 @@ const ELEMENT_ICONS: Record<string, React.ReactNode> = {
   medicalHistory: <ClipboardList className="w-4 h-4" />,
 };
 
-export function CanvasElement({ element, index, isSelected }: CanvasElementProps) {
-  const { selectElement, deleteElement, duplicateElement, reorderElements } = useBuilder();
-  const [isDragging, setIsDragging] = React.useState(false);
+// Width steps for left/right controls
+const WIDTH_STEPS = [3, 4, 6, 8, 9, 12];
+
+export function CanvasElement({ element, index, isSelected, totalElements }: CanvasElementProps) {
+  const { selectElement, deleteElement, duplicateElement, reorderElements, updateElement, recalculateLayout } = useBuilder();
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -69,57 +76,142 @@ export function CanvasElement({ element, index, isSelected }: CanvasElementProps
     duplicateElement(element.id);
   };
 
-  const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData('elementIndex', String(index));
-    e.dataTransfer.effectAllowed = 'move';
-    setIsDragging(true);
+  // Move element up in order
+  const handleMoveUp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (index > 0) {
+      reorderElements(index, index - 1);
+    }
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
+  // Move element down in order
+  const handleMoveDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (index < totalElements - 1) {
+      reorderElements(index, index + 1);
+    }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+  // Decrease width (make narrower)
+  const handleDecreaseWidth = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const currentWidth = element.position?.width || 12;
+    const currentIndex = WIDTH_STEPS.indexOf(currentWidth);
+    if (currentIndex > 0) {
+      const newWidth = WIDTH_STEPS[currentIndex - 1];
+      updateElement(element.id, {
+        position: { ...element.position, width: newWidth }
+      });
+      setTimeout(() => recalculateLayout(), 0);
+    } else if (currentIndex === -1 && currentWidth > 3) {
+      // If current width is not in steps, find the next smaller step
+      const smallerStep = WIDTH_STEPS.filter(w => w < currentWidth).pop() || 3;
+      updateElement(element.id, {
+        position: { ...element.position, width: smallerStep }
+      });
+      setTimeout(() => recalculateLayout(), 0);
+    }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const fromIndex = parseInt(e.dataTransfer.getData('elementIndex'), 10);
-    if (!isNaN(fromIndex) && fromIndex !== index) {
-      reorderElements(fromIndex, index);
+  // Increase width (make wider)
+  const handleIncreaseWidth = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const currentWidth = element.position?.width || 12;
+    const currentIndex = WIDTH_STEPS.indexOf(currentWidth);
+    if (currentIndex >= 0 && currentIndex < WIDTH_STEPS.length - 1) {
+      const newWidth = WIDTH_STEPS[currentIndex + 1];
+      updateElement(element.id, {
+        position: { ...element.position, width: newWidth }
+      });
+      setTimeout(() => recalculateLayout(), 0);
+    } else if (currentIndex === -1 && currentWidth < 12) {
+      // If current width is not in steps, find the next larger step
+      const largerStep = WIDTH_STEPS.find(w => w > currentWidth) || 12;
+      updateElement(element.id, {
+        position: { ...element.position, width: largerStep }
+      });
+      setTimeout(() => recalculateLayout(), 0);
     }
   };
 
   const isPrefilled = element.prefill?.enabled;
   const isReadOnly = element.prefill?.enabled && element.prefill?.readonly;
+  const currentWidth = element.position?.width || 12;
+  const canMoveUp = index > 0;
+  const canMoveDown = index < totalElements - 1;
+  const canDecreaseWidth = currentWidth > 3;
+  const canIncreaseWidth = currentWidth < 12;
 
   return (
     <div
       className={`group relative rounded-lg border-2 transition-all ${
-        isDragging 
-          ? 'opacity-50 border-gray-300' 
-          : isSelected
-            ? 'border-cyan-500 bg-cyan-50 shadow-md'
-            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+        isSelected
+          ? 'border-cyan-500 bg-cyan-50 shadow-md'
+          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
       }`}
       onClick={handleClick}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
     >
-      {/* Drag Handle */}
-      <div
-        draggable
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-l-lg"
-      >
-        <GripVertical className="w-4 h-4" />
+      {/* Arrow Controls - Left Side */}
+      <div className="absolute left-0 top-0 bottom-0 w-10 flex flex-col items-center justify-center gap-1 bg-gray-50 rounded-l-lg border-r border-gray-200">
+        {/* Move Up */}
+        <button
+          onClick={handleMoveUp}
+          disabled={!canMoveUp}
+          className={`p-1 rounded transition-colors ${
+            canMoveUp 
+              ? 'hover:bg-gray-200 text-gray-600 hover:text-gray-800' 
+              : 'text-gray-300 cursor-not-allowed'
+          }`}
+          title="Move Up"
+        >
+          <ChevronUp className="w-4 h-4" />
+        </button>
+        
+        {/* Width Controls */}
+        <div className="flex gap-0.5">
+          <button
+            onClick={handleDecreaseWidth}
+            disabled={!canDecreaseWidth}
+            className={`p-0.5 rounded transition-colors ${
+              canDecreaseWidth 
+                ? 'hover:bg-blue-100 text-blue-600 hover:text-blue-800' 
+                : 'text-gray-300 cursor-not-allowed'
+            }`}
+            title="Decrease Width"
+          >
+            <ChevronLeft className="w-3 h-3" />
+          </button>
+          <button
+            onClick={handleIncreaseWidth}
+            disabled={!canIncreaseWidth}
+            className={`p-0.5 rounded transition-colors ${
+              canIncreaseWidth 
+                ? 'hover:bg-blue-100 text-blue-600 hover:text-blue-800' 
+                : 'text-gray-300 cursor-not-allowed'
+            }`}
+            title="Increase Width"
+          >
+            <ChevronRight className="w-3 h-3" />
+          </button>
+        </div>
+        
+        {/* Move Down */}
+        <button
+          onClick={handleMoveDown}
+          disabled={!canMoveDown}
+          className={`p-1 rounded transition-colors ${
+            canMoveDown 
+              ? 'hover:bg-gray-200 text-gray-600 hover:text-gray-800' 
+              : 'text-gray-300 cursor-not-allowed'
+          }`}
+          title="Move Down"
+        >
+          <ChevronDown className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Element Content */}
-      <div className="ml-8 p-4">
+      <div className="ml-10 p-4">
         {/* Header Row */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">

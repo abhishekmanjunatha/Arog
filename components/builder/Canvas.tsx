@@ -2,69 +2,17 @@
 
 /**
  * Canvas
- * Center panel where elements are dropped and arranged
+ * Center panel where elements are arranged
+ * Click elements in the palette to add them
  */
 
 import React from 'react';
 import { useBuilder } from './BuilderContext';
 import { CanvasElement } from './CanvasElement';
-import { ElementType } from '@/types/builder';
 import { Plus } from 'lucide-react';
 
 export function Canvas() {
-  const { state, addElement, dispatch, selectElement } = useBuilder();
-  const [isDragOver, setIsDragOver] = React.useState(false);
-  const dragCounter = React.useRef(0);
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-  };
-
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current++;
-    // Check if dragging an element type - use state.isDragging as primary check
-    // dataTransfer.types may vary by browser
-    if (state.isDragging || 
-        e.dataTransfer.types.includes('application/x-element-type') || 
-        e.dataTransfer.types.includes('text/plain')) {
-      setIsDragOver(true);
-    }
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter.current--;
-    if (dragCounter.current === 0) {
-      setIsDragOver(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current = 0;
-    setIsDragOver(false);
-    
-    // Primary: use state.draggedElementType (most reliable)
-    let elementType: ElementType | null = state.draggedElementType;
-    
-    // Fallback: try data transfer
-    if (!elementType) {
-      elementType = e.dataTransfer.getData('application/x-element-type') as ElementType;
-    }
-    if (!elementType) {
-      elementType = e.dataTransfer.getData('text/plain') as ElementType;
-    }
-    
-    if (elementType) {
-      addElement(elementType);
-    }
-    
-    dispatch({ type: 'SET_DRAGGING', isDragging: false, elementType: null });
-  };
+  const { state, selectElement } = useBuilder();
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     // Deselect when clicking on empty canvas area
@@ -74,33 +22,24 @@ export function Canvas() {
   };
 
   const isEmpty = state.schema.elements.length === 0;
+  const totalElements = state.schema.elements.length;
 
   return (
     <div
-      className={`min-h-full rounded-lg transition-all ${
-        isDragOver 
-          ? 'bg-cyan-50 border-2 border-dashed border-cyan-400' 
-          : 'bg-white border border-gray-200'
-      }`}
-      onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      className="min-h-full rounded-lg transition-all bg-white border border-gray-200"
       onClick={handleCanvasClick}
     >
       {isEmpty ? (
         // Empty State
         <div className="flex flex-col items-center justify-center h-96 text-gray-400">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${
-            isDragOver ? 'bg-cyan-100 text-cyan-600' : 'bg-gray-100'
-          }`}>
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4 bg-gray-100">
             <Plus className="w-10 h-10" />
           </div>
           <p className="text-lg font-medium mb-2">
-            {isDragOver ? 'Drop element here' : 'Start building your form'}
+            Start building your form
           </p>
           <p className="text-sm text-center max-w-xs">
-            Drag elements from the left panel or click on them to add to your form
+            Click on elements in the left panel to add them to your form
           </p>
         </div>
       ) : (
@@ -124,24 +63,16 @@ export function Canvas() {
                     element={element}
                     index={index}
                     isSelected={element.id === state.selectedElementId}
+                    totalElements={totalElements}
                   />
                 </div>
               );
             })}
           </div>
           
-          {/* Drop Zone at Bottom */}
-          <div
-            className={`mt-3 border-2 border-dashed rounded-lg p-4 text-center transition-all ${
-              isDragOver 
-                ? 'border-cyan-400 bg-cyan-50 text-cyan-600' 
-                : 'border-gray-300 text-gray-400 hover:border-gray-400'
-            }`}
-          >
-            <Plus className="w-5 h-5 mx-auto mb-1" />
-            <span className="text-sm">
-              {isDragOver ? 'Drop here' : 'Drop or click to add element'}
-            </span>
+          {/* Help Text */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg text-center text-sm text-gray-500">
+            <p>Use ↑↓ arrows to reorder • Use ←→ arrows to adjust width</p>
           </div>
         </div>
       )}

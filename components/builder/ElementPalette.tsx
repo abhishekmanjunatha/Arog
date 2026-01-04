@@ -106,19 +106,7 @@ const ELEMENT_ITEMS: ElementItem[] = [
 ];
 
 export function ElementPalette() {
-  const { addElement, dispatch } = useBuilder();
-
-  const handleDragStart = (e: React.DragEvent, type: ElementType) => {
-    // Use multiple data formats for cross-browser compatibility
-    e.dataTransfer.setData('application/x-element-type', type);
-    e.dataTransfer.setData('text/plain', type);
-    e.dataTransfer.effectAllowed = 'copy';
-    dispatch({ type: 'SET_DRAGGING', isDragging: true, elementType: type });
-  };
-
-  const handleDragEnd = () => {
-    dispatch({ type: 'SET_DRAGGING', isDragging: false, elementType: null });
-  };
+  const { addElement } = useBuilder();
 
   const handleClick = (type: ElementType) => {
     addElement(type);
@@ -128,18 +116,15 @@ export function ElementPalette() {
     <div className="p-4">
       <h3 className="text-sm font-semibold text-gray-900 mb-3">Elements</h3>
       <p className="text-xs text-gray-500 mb-4">
-        Drag or click to add elements
+        Click to add elements
       </p>
       
       <div className="space-y-2">
         {ELEMENT_ITEMS.map((item) => (
           <div
             key={item.type}
-            draggable
-            onDragStart={(e) => handleDragStart(e, item.type)}
-            onDragEnd={handleDragEnd}
             onClick={() => handleClick(item.type)}
-            className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-grab hover:bg-cyan-50 hover:border-cyan-200 border border-transparent transition-all group active:cursor-grabbing"
+            className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-cyan-50 hover:border-cyan-200 border border-transparent transition-all group"
           >
             <div className="flex-shrink-0 w-10 h-10 bg-white rounded-lg flex items-center justify-center text-gray-600 group-hover:text-cyan-600 group-hover:bg-cyan-100 transition-colors shadow-sm">
               {item.icon}
@@ -160,8 +145,9 @@ export function ElementPalette() {
       <div className="mt-6 p-3 bg-cyan-50 rounded-lg">
         <h4 className="text-xs font-semibold text-cyan-900 mb-2">Quick Tips</h4>
         <ul className="text-xs text-cyan-700 space-y-1">
-          <li>• Click to add element at the end</li>
-          <li>• Drag to position elements</li>
+          <li>• Click to add element to form</li>
+          <li>• Use ↑↓ arrows to reorder</li>
+          <li>• Use ←→ arrows to resize</li>
           <li>• Click element on canvas to edit</li>
         </ul>
       </div>
