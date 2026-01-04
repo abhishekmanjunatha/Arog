@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Header } from '@/components/layout/Header'
 import type { User } from '@supabase/supabase-js'
 
-export default function AppointmentsPage() {
+function AppointmentsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [user, setUser] = useState<User | null>(null)
@@ -237,5 +237,13 @@ export default function AppointmentsPage() {
       </div>
       </main>
     </div>
+  )
+}
+
+export default function AppointmentsPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <AppointmentsContent />
+    </Suspense>
   )
 }
