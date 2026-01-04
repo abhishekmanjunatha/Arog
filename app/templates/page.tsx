@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Header } from '@/components/layout/Header'
+import { isBuilderV2Enabled } from '@/lib/feature-flags'
+import { Layers, FileText, Plus, ChevronDown } from 'lucide-react'
 import type { TemplateContent } from '@/types/template'
 import type { User } from '@supabase/supabase-js'
 
@@ -16,8 +18,11 @@ export default function TemplatesPage() {
   const [user, setUser] = useState<User | null>(null)
   const [templates, setTemplates] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [showCreateMenu, setShowCreateMenu] = useState(false)
 
+  const builderEnabled = isBuilderV2Enabled()
   const categoryFilter = searchParams.get('category') || ''
+  const versionFilter = searchParams.get('version') || ''
   const showInactive = searchParams.get('showInactive') === 'true'
 
   useEffect(() => {
@@ -46,13 +51,20 @@ export default function TemplatesPage() {
         query = query.eq('is_active', true)
       }
 
+      // Filter by builder version if specified
+      if (versionFilter === '1') {
+        query = query.or('builder_version.is.null,builder_version.eq.1')
+      } else if (versionFilter === '2') {
+        query = query.eq('builder_version', 2)
+      }
+
       const { data } = await query
       setTemplates(data || [])
       setLoading(false)
     }
 
     loadData()
-  }, [categoryFilter, showInactive, router])
+  }, [categoryFilter, versionFilter, showInactive, router])
 
   if (loading || !user) {
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>
@@ -94,6 +106,16 @@ export default function TemplatesPage() {
     router.push(`/templates?${params.toString()}`)
   }
 
+  const handleVersionChange = (version: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (version) {
+      params.set('version', version)
+    } else {
+      params.delete('version')
+    }
+    router.push(`/templates?${params.toString()}`)
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header userEmail={user.email || ''} />
@@ -106,9 +128,69 @@ export default function TemplatesPage() {
                 <h1 className="text-4xl font-bold tracking-tight mb-2">Document Templates</h1>
                 <p className="text-lg text-muted-foreground">Create and manage reusable document templates</p>
               </div>
-              <Link href="/templates/new">
-                <Button size="lg" className="w-full sm:w-auto shadow-md">+ Create Template</Button>
-              </Link>
+              
+              {/* Create Template Button with Dropdown */}
+              <div className="relative">
+                {builderEnabled ? (
+                  <>
+                    <Button 
+                      size="lg" 
+                      className="w-full sm:w-auto shadow-md"
+                      onClick={() => setShowCreateMenu(!showCreateMenu)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Template
+                      <ChevronDown className="w-4 h-4 ml-2" />
+                    </Button>
+                    
+                    {showCreateMenu && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setShowCreateMenu(false)}
+                        />
+                        <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border z-50">
+                          <Link 
+                            href="/templates/new/builder"
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-t-lg"
+                            onClick={() => setShowCreateMenu(false)}
+                          >
+                            <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                              <Layers className="w-5 h-5 text-cyan-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">Form Builder</div>
+                              <div className="text-xs text-gray-500">Drag & drop designer</div>
+                            </div>
+                            <span className="ml-auto text-xs px-2 py-0.5 bg-cyan-100 text-cyan-700 rounded">V2</span>
+                          </Link>
+                          <Link 
+                            href="/templates/new"
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-t rounded-b-lg"
+                            onClick={() => setShowCreateMenu(false)}
+                          >
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <FileText className="w-5 h-5 text-gray-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">Variable Template</div>
+                              <div className="text-xs text-gray-500">Classic text editor</div>
+                            </div>
+                            <span className="ml-auto text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">V1</span>
+                          </Link>
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <Link href="/templates/new">
+                    <Button size="lg" className="w-full sm:w-auto shadow-md">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Template
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
 
             <Card className="border-0 shadow-md">
@@ -127,6 +209,19 @@ export default function TemplatesPage() {
                     ))}
                   </select>
                   
+                  {builderEnabled && (
+                    <select
+                      name="version"
+                      value={versionFilter}
+                      className="flex h-12 rounded-lg border border-input bg-background px-4 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[150px]"
+                      onChange={(e) => handleVersionChange(e.target.value)}
+                    >
+                      <option value="">All Versions</option>
+                      <option value="1">V1 - Variable</option>
+                      <option value="2">V2 - Builder</option>
+                    </select>
+                  )}
+                  
                   <label className="flex items-center gap-2 text-sm font-medium cursor-pointer px-4 py-2 rounded-lg hover:bg-accent transition-colors">
                     <input
                       type="checkbox"
@@ -138,7 +233,7 @@ export default function TemplatesPage() {
                     Show inactive
                   </label>
 
-                  {(categoryFilter || showInactive) && (
+                  {(categoryFilter || showInactive || versionFilter) && (
                     <Link href="/templates">
                       <Button type="button" variant="ghost" size="sm" className="ml-auto">
                         Clear filters
@@ -154,6 +249,8 @@ export default function TemplatesPage() {
                 {templates.map((template) => {
                   const content = template.schema_json as TemplateContent
                   const variableCount = content.variables?.length || 0
+                  const elementCount = content.elements?.length || 0
+                  const isBuilderV2 = template.builder_version === 2
 
                   return (
                     <Link
@@ -167,11 +264,23 @@ export default function TemplatesPage() {
                             <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
                               {template.name}
                             </h3>
-                            {!template.is_active && (
-                              <span className="status-badge bg-gray-100 text-gray-600">
-                                Inactive
-                              </span>
-                            )}
+                            <div className="flex gap-2">
+                              {isBuilderV2 ? (
+                                <span className="status-badge bg-cyan-100 text-cyan-700 flex items-center gap-1">
+                                  <Layers className="w-3 h-3" />
+                                  V2
+                                </span>
+                              ) : (
+                                <span className="status-badge bg-gray-100 text-gray-600">
+                                  V1
+                                </span>
+                              )}
+                              {!template.is_active && (
+                                <span className="status-badge bg-gray-100 text-gray-600">
+                                  Inactive
+                                </span>
+                              )}
+                            </div>
                           </div>
                           
                           {template.description && (
@@ -185,7 +294,10 @@ export default function TemplatesPage() {
                               {template.category || 'uncategorized'}
                             </span>
                             <span className="text-muted-foreground">
-                              {variableCount} variable{variableCount !== 1 ? 's' : ''}
+                              {isBuilderV2 
+                                ? `${elementCount} element${elementCount !== 1 ? 's' : ''}`
+                                : `${variableCount} variable${variableCount !== 1 ? 's' : ''}`
+                              }
                             </span>
                           </div>
                         </div>

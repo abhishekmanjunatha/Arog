@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toggleTemplateActive } from '@/app/actions/templates'
+import { Layers, FileText } from 'lucide-react'
 import type { TemplateContent } from '@/types/template'
 
 export default async function TemplateDetailPage({
@@ -30,6 +31,7 @@ export default async function TemplateDetailPage({
   }
 
   const content = template.schema_json as TemplateContent
+  const isBuilderV2 = template.builder_version === 2
   const deactivateAction = toggleTemplateActive.bind(null, template.id, false)
   const activateAction = toggleTemplateActive.bind(null, template.id, true)
 
@@ -60,13 +62,26 @@ export default async function TemplateDetailPage({
         <div className="max-w-4xl space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight">{template.name}</h2>
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="text-3xl font-bold tracking-tight">{template.name}</h2>
+                {isBuilderV2 ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-cyan-100 text-cyan-700 rounded">
+                    <Layers className="w-3 h-3" />
+                    Builder V2
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                    <FileText className="w-3 h-3" />
+                    V1
+                  </span>
+                )}
+              </div>
               <p className="text-muted-foreground">
                 {template.description || 'No description'}
               </p>
             </div>
             <div className="flex gap-2">
-              <Link href={`/templates/${template.id}/edit`}>
+              <Link href={isBuilderV2 ? `/templates/${template.id}/edit/builder` : `/templates/${template.id}/edit`}>
                 <Button variant="outline">Edit</Button>
               </Link>
               {template.is_active ? (
@@ -112,8 +127,21 @@ export default async function TemplateDetailPage({
                   </span>
                 </div>
                 <div className="flex justify-between py-2 border-b">
-                  <span className="text-sm font-medium">Variables</span>
-                  <span className="text-sm">{content.variables?.length || 0}</span>
+                  <span className="text-sm font-medium">Type</span>
+                  <span className="text-sm">
+                    {isBuilderV2 ? 'Form Builder (V2)' : 'Variable Template (V1)'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-sm font-medium">
+                    {isBuilderV2 ? 'Elements' : 'Variables'}
+                  </span>
+                  <span className="text-sm">
+                    {isBuilderV2 
+                      ? content.elements?.length || 0
+                      : content.variables?.length || 0
+                    }
+                  </span>
                 </div>
                 <div className="flex justify-between py-2 border-b">
                   <span className="text-sm font-medium">Created</span>
@@ -132,21 +160,46 @@ export default async function TemplateDetailPage({
 
             <Card>
               <CardHeader>
-                <CardTitle>Variables Used</CardTitle>
+                <CardTitle>{isBuilderV2 ? 'Variables Used' : 'Variables Used'}</CardTitle>
               </CardHeader>
               <CardContent>
-                {content.variables && content.variables.length > 0 ? (
-                  <div className="space-y-1">
-                    {content.variables.map((variable, index) => (
-                      <div key={index} className="text-sm font-mono bg-muted px-2 py-1 rounded">
-                        {`{{${variable}}}`}
-                      </div>
-                    ))}
+                {isBuilderV2 ? (
+                  // Show prefilled elements for V2
+                  <div className="space-y-2">
+                    {content.elements && content.elements.length > 0 ? (
+                      content.elements
+                        .filter((el: any) => el.prefill?.enabled)
+                        .map((element: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between text-sm bg-muted px-3 py-2 rounded">
+                            <span className="font-medium">{element.label}</span>
+                            <span className="text-muted-foreground text-xs">
+                              {element.prefill?.source}.{element.prefill?.field}
+                              {element.prefill?.readonly && ' (read-only)'}
+                            </span>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No prefilled fields</p>
+                    )}
+                    {content.elements && content.elements.filter((el: any) => el.prefill?.enabled).length === 0 && (
+                      <p className="text-sm text-muted-foreground">No prefilled fields configured</p>
+                    )}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No variables defined
-                  </p>
+                  // Show variables for V1
+                  content.variables && content.variables.length > 0 ? (
+                    <div className="space-y-1">
+                      {content.variables.map((variable: string, index: number) => (
+                        <div key={index} className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                          {`{{${variable}}}`}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No variables defined
+                    </p>
+                  )
                 )}
               </CardContent>
             </Card>
@@ -154,12 +207,49 @@ export default async function TemplateDetailPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>Template Content</CardTitle>
+              <CardTitle>{isBuilderV2 ? 'Form Elements' : 'Template Content'}</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-md font-mono overflow-x-auto">
-                {content.content}
-              </pre>
+              {isBuilderV2 ? (
+                // Show elements list for V2
+                <div className="space-y-2">
+                  {content.elements && content.elements.length > 0 ? (
+                    content.elements.map((element: any, index: number) => (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                        <div className="w-8 h-8 rounded bg-cyan-100 flex items-center justify-center text-cyan-700 text-xs font-bold">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{element.label}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {element.type} • {element.name}
+                            {element.required && ' • Required'}
+                          </div>
+                        </div>
+                        {element.prefill?.enabled && (
+                          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                            Prefilled
+                          </span>
+                        )}
+                        {element.type === 'calculated' && (
+                          <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded">
+                            Calculated
+                          </span>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-center py-4">
+                      No elements configured
+                    </p>
+                  )}
+                </div>
+              ) : (
+                // Show text content for V1
+                <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-md font-mono overflow-x-auto">
+                  {content.content}
+                </pre>
+              )}
             </CardContent>
           </Card>
 
@@ -174,7 +264,7 @@ export default async function TemplateDetailPage({
                     Use This Template
                   </Button>
                 </Link>
-                <Link href={`/templates/${template.id}/edit`}>
+                <Link href={isBuilderV2 ? `/templates/${template.id}/edit/builder` : `/templates/${template.id}/edit`}>
                   <Button variant="outline" className="w-full">
                     Edit Template
                   </Button>
