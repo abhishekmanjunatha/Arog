@@ -258,11 +258,22 @@ export function FormRenderer({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {schema.elements.map((element) => (
-        <div key={element.id}>
-          {renderElement(element)}
-        </div>
-      ))}
+      {/* 12-column Grid Layout */}
+      <div className="grid grid-cols-12 gap-4">
+        {schema.elements.map((element) => {
+          // Get element width (default to 12 = full width)
+          const width = element.position?.width || 12;
+          
+          return (
+            <div 
+              key={element.id}
+              style={{ gridColumn: `span ${width} / span ${width}` }}
+            >
+              {renderElement(element)}
+            </div>
+          );
+        })}
+      </div>
 
       {showSubmitButton && onSubmit && (
         <div className="pt-4 border-t border-gray-200">

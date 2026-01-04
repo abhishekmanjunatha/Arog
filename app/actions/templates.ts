@@ -301,3 +301,85 @@ export async function toggleTemplateActive(templateId: string, isActive: boolean
   revalidatePath(`/templates/${templateId}`)
   redirect(`/templates/${templateId}?status_updated=true`)
 }
+
+/**
+ * Migrate a V1 template to V2 Builder format
+ */
+export async function migrateTemplateToV2(
+  templateId: string
+): Promise<{ success?: boolean; error?: string; changes?: string[]; warnings?: string[] }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'Not authenticated' }
+  }
+
+  // Import migration function
+  const { migrateSchemaWithReport } = await import('@/lib/builder-utils')
+
+  // Get existing template
+  const { data: template, error: fetchError } = await supabase
+    .from('templates')
+    .select('*')
+    .eq('id', templateId)
+    .eq('doctor_id', user.id)
+    .single()
+
+  if (fetchError || !template) {
+    return { error: 'Template not found or access denied' }
+  }
+
+  // Check if already V2
+  const builderVersion = (template as any).builder_version
+  if (builderVersion === 2) {
+    return { error: 'Template is already Builder V2 format' }
+  }
+
+  // Migrate schema
+  const migrationResult = migrateSchemaWithReport(template.schema_json)
+
+  if (!migrationResult.success) {
+    return { error: 'Migration failed' }
+  }
+
+  // Update template with new schema
+  const updates = {
+    schema_json: {
+      version: '2.0',
+      variables: [],
+      content: '',
+      elements: migrationResult.newSchema.elements as any,
+      styles: {
+        fontSize: 12,
+        fontFamily: 'Helvetica',
+        lineHeight: 1.5,
+        pageMargins: [40, 60, 40, 60],
+      },
+      pageSettings: {
+        size: 'A4',
+        orientation: 'portrait',
+      },
+    } as any,
+    builder_version: 2,
+  }
+
+  const { error: updateError } = await supabase
+    .from('templates')
+    .update(updates as any)
+    .eq('id', templateId)
+    .eq('doctor_id', user.id)
+
+  if (updateError) {
+    return { error: updateError.message }
+  }
+
+  revalidatePath('/templates')
+  revalidatePath(`/templates/${templateId}`)
+
+  return {
+    success: true,
+    changes: migrationResult.changes,
+    warnings: migrationResult.warnings
+  }
+}

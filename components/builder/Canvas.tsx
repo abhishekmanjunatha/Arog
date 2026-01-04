@@ -77,20 +77,35 @@ export function Canvas() {
           </p>
         </div>
       ) : (
-        // Elements List
-        <div className="p-4 space-y-3">
-          {state.schema.elements.map((element, index) => (
-            <CanvasElement
-              key={element.id}
-              element={element}
-              index={index}
-              isSelected={element.id === state.selectedElementId}
-            />
-          ))}
+        // Elements Grid Layout
+        <div className="p-4">
+          {/* 12-column CSS Grid */}
+          <div className="grid grid-cols-12 gap-3">
+            {state.schema.elements.map((element, index) => {
+              // Get element width (default to 12 = full width)
+              const width = element.position?.width || 12;
+              
+              return (
+                <div
+                  key={element.id}
+                  className="transition-all"
+                  style={{ 
+                    gridColumn: `span ${width} / span ${width}`,
+                  }}
+                >
+                  <CanvasElement
+                    element={element}
+                    index={index}
+                    isSelected={element.id === state.selectedElementId}
+                  />
+                </div>
+              );
+            })}
+          </div>
           
           {/* Drop Zone at Bottom */}
           <div
-            className={`border-2 border-dashed rounded-lg p-4 text-center transition-all ${
+            className={`mt-3 border-2 border-dashed rounded-lg p-4 text-center transition-all ${
               isDragOver 
                 ? 'border-cyan-400 bg-cyan-50 text-cyan-600' 
                 : 'border-gray-300 text-gray-400 hover:border-gray-400'

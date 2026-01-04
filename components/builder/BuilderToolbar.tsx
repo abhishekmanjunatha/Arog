@@ -8,14 +8,17 @@
 import React from 'react';
 import { useBuilder } from './BuilderContext';
 import { BuilderSchema } from '@/types/builder';
-import { validateSchema } from '@/lib/builder-utils';
+import { validateSchema, ValidationResult } from '@/lib/builder-utils';
 import { 
   Undo2, 
   Redo2, 
   Save, 
   Trash2, 
   Eye,
-  FileJson
+  FileJson,
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle
 } from 'lucide-react';
 
 interface BuilderToolbarProps {
@@ -27,15 +30,34 @@ export function BuilderToolbar({ onSave, templateName }: BuilderToolbarProps) {
   const { state, undo, redo, clearAll, canUndo, canRedo } = useBuilder();
   const [showPreview, setShowPreview] = React.useState(false);
   const [showJson, setShowJson] = React.useState(false);
+  const [showValidation, setShowValidation] = React.useState(false);
+  const [validationResult, setValidationResult] = React.useState<ValidationResult | null>(null);
 
   const handleSave = () => {
     const validation = validateSchema(state.schema);
     
     if (!validation.valid) {
-      alert(`Schema validation errors:\n${validation.errors.join('\n')}`);
+      // Show validation modal with errors
+      setValidationResult(validation);
+      setShowValidation(true);
       return;
     }
     
+    // Show warnings if any, but allow save
+    if (validation.warnings.length > 0) {
+      setValidationResult(validation);
+      setShowValidation(true);
+      return;
+    }
+    
+    // All good, save directly
+    if (onSave) {
+      onSave(state.schema);
+    }
+  };
+
+  const handleConfirmSave = () => {
+    setShowValidation(false);
     if (onSave) {
       onSave(state.schema);
     }
@@ -270,6 +292,112 @@ export function BuilderToolbar({ onSave, templateName }: BuilderToolbarProps) {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Validation Modal */}
+      {showValidation && validationResult && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[80vh] flex flex-col">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                {validationResult.valid ? (
+                  <>
+                    <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                    Validation Warnings
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-5 h-5 text-red-500" />
+                    Validation Errors
+                  </>
+                )}
+              </h3>
+              <button
+                onClick={() => setShowValidation(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 overflow-auto flex-1 space-y-4">
+              {/* Errors */}
+              {validationResult.errors.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-red-700 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Errors ({validationResult.errors.length})
+                  </h4>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <ul className="space-y-1 text-sm text-red-700">
+                      {validationResult.errors.map((error, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-red-400 mt-0.5">•</span>
+                          <span>{error}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Please fix these errors before saving the template.
+                  </p>
+                </div>
+              )}
+
+              {/* Warnings */}
+              {validationResult.warnings.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-yellow-700 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Warnings ({validationResult.warnings.length})
+                  </h4>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <ul className="space-y-1 text-sm text-yellow-700">
+                      {validationResult.warnings.map((warning, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-yellow-400 mt-0.5">•</span>
+                          <span>{warning}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  {validationResult.valid && (
+                    <p className="text-xs text-gray-500">
+                      These are suggestions. You can still save the template.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Success state */}
+              {validationResult.valid && validationResult.warnings.length === 0 && (
+                <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="w-8 h-8 text-green-500" />
+                  <div>
+                    <p className="font-medium text-green-700">Schema is valid!</p>
+                    <p className="text-sm text-green-600">Your form is ready to be saved.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-4 border-t border-gray-200 flex justify-end gap-2">
+              <button
+                onClick={() => setShowValidation(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                {validationResult.valid ? 'Cancel' : 'Close'}
+              </button>
+              {validationResult.valid && (
+                <button
+                  onClick={handleConfirmSave}
+                  className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Anyway
+                </button>
+              )}
             </div>
           </div>
         </div>

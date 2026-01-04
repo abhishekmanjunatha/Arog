@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toggleTemplateActive } from '@/app/actions/templates'
 import { Layers, FileText } from 'lucide-react'
 import type { TemplateContent } from '@/types/template'
+import { MigrateButton } from './MigrateButton'
 
 export default async function TemplateDetailPage({
   params,
@@ -81,6 +82,9 @@ export default async function TemplateDetailPage({
               </p>
             </div>
             <div className="flex gap-2">
+              {!isBuilderV2 && (
+                <MigrateButton templateId={template.id} />
+              )}
               <Link href={isBuilderV2 ? `/templates/${template.id}/edit/builder` : `/templates/${template.id}/edit`}>
                 <Button variant="outline">Edit</Button>
               </Link>

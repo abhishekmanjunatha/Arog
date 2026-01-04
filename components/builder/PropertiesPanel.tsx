@@ -11,7 +11,7 @@ import { BuilderElement, ElementType, PrefillSource, PrefillField } from '@/type
 import { PREFILL_FIELDS, formatPrefillSource } from '@/lib/prefill-engine';
 import { getAvailableCalculations } from '@/lib/calculation-engine';
 import { canBePrefilled, canBeRequired } from '@/lib/builder-utils';
-import { Settings, Sliders, Zap, AlertCircle } from 'lucide-react';
+import { Settings, Sliders, Zap, AlertCircle, LayoutGrid } from 'lucide-react';
 
 export function PropertiesPanel() {
   const { state, updateElement, getSelectedElement } = useBuilder();
@@ -37,6 +37,9 @@ export function PropertiesPanel() {
 
       {/* Basic Properties */}
       <BasicProperties element={selectedElement} onUpdate={updateElement} />
+
+      {/* Layout Properties */}
+      <LayoutProperties element={selectedElement} onUpdate={updateElement} />
 
       {/* Type-Specific Properties */}
       <TypeSpecificProperties element={selectedElement} onUpdate={updateElement} />
@@ -116,6 +119,96 @@ function BasicProperties({ element, onUpdate }: PropertySectionProps) {
           <span className="text-sm text-gray-700">Required field</span>
         </label>
       )}
+    </div>
+  );
+}
+
+// Layout Properties Section - Grid System
+function LayoutProperties({ element, onUpdate }: PropertySectionProps) {
+  const handlePositionChange = (key: 'width' | 'col', value: number) => {
+    onUpdate(element.id, {
+      position: { ...element.position, [key]: value },
+    });
+  };
+
+  const widthOptions = [
+    { value: 12, label: 'Full Width (12/12)', preview: 'w-full' },
+    { value: 6, label: 'Half Width (6/12)', preview: 'w-1/2' },
+    { value: 4, label: 'Third Width (4/12)', preview: 'w-1/3' },
+    { value: 3, label: 'Quarter Width (3/12)', preview: 'w-1/4' },
+    { value: 8, label: 'Two-Thirds (8/12)', preview: 'w-2/3' },
+    { value: 9, label: 'Three-Quarters (9/12)', preview: 'w-3/4' },
+  ];
+
+  const currentWidth = element.position?.width || 12;
+
+  return (
+    <div className="space-y-4">
+      <h4 className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-2">
+        <LayoutGrid className="w-3 h-3" />
+        Layout
+      </h4>
+      
+      {/* Width Selector */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Element Width
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          {widthOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => handlePositionChange('width', option.value)}
+              className={`p-2 text-xs rounded-lg border transition-all ${
+                currentWidth === option.value
+                  ? 'border-cyan-500 bg-cyan-50 text-cyan-700 font-medium'
+                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+              }`}
+            >
+              <div className="mb-1">{option.label}</div>
+              <div className="h-2 bg-gray-200 rounded overflow-hidden">
+                <div 
+                  className="h-full bg-cyan-500 rounded" 
+                  style={{ width: `${(option.value / 12) * 100}%` }}
+                />
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Custom Width Slider */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Custom Width: {currentWidth}/12
+        </label>
+        <input
+          type="range"
+          min={1}
+          max={12}
+          value={currentWidth}
+          onChange={(e) => handlePositionChange('width', Number(e.target.value))}
+          className="w-full accent-cyan-600"
+        />
+        <div className="flex justify-between text-xs text-gray-400 mt-1">
+          <span>1</span>
+          <span>6</span>
+          <span>12</span>
+        </div>
+      </div>
+
+      {/* Width Preview */}
+      <div className="mt-2 p-2 bg-gray-50 rounded-lg">
+        <p className="text-xs text-gray-500 mb-2">Preview:</p>
+        <div className="h-8 bg-gray-200 rounded overflow-hidden">
+          <div 
+            className="h-full bg-cyan-500 rounded flex items-center justify-center text-white text-xs font-medium" 
+            style={{ width: `${(currentWidth / 12) * 100}%` }}
+          >
+            {Math.round((currentWidth / 12) * 100)}%
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
