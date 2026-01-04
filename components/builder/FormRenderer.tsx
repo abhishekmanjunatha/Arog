@@ -18,6 +18,8 @@ import {
   CalculatedElement,
   HeaderElement,
   DividerElement,
+  ImageElement,
+  FooterElement,
 } from './elements';
 import { applyPrefillToForm } from '@/lib/prefill-engine.client';
 import { validateSchema } from '@/lib/builder-utils';
@@ -227,6 +229,12 @@ export function FormRenderer({
 
       case 'divider':
         return <DividerElement element={element} />;
+
+      case 'image':
+        return <ImageElement element={element} />;
+
+      case 'footer':
+        return <FooterElement element={element} />;
 
       default:
         return null;

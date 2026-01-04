@@ -7,7 +7,7 @@
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { BuilderElement, BuilderSchema } from '@/types/builder';
-import { createDefaultElement, generateElementId, calculateNextPosition } from '@/lib/builder-utils';
+import { createDefaultElement, generateElementId, calculateNextPosition, generateUniqueFieldName } from '@/lib/builder-utils';
 import { ElementType } from '@/types/builder';
 
 // Builder State
@@ -51,7 +51,8 @@ const initialState: BuilderState = {
 function builderReducer(state: BuilderState, action: BuilderAction): BuilderState {
   switch (action.type) {
     case 'ADD_ELEMENT': {
-      const newElement = createDefaultElement(action.elementType);
+      const existingNames = state.schema.elements.map(el => el.name);
+      const newElement = createDefaultElement(action.elementType, existingNames);
       newElement.position = calculateNextPosition(state.schema.elements);
       
       return {
@@ -121,10 +122,14 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
       const elementToDuplicate = state.schema.elements.find((el) => el.id === action.elementId);
       if (!elementToDuplicate) return state;
       
+      const existingNames = state.schema.elements.map(el => el.name);
+      const baseName = elementToDuplicate.name.replace(/_copy(_\d+)?$/, '').replace(/_\d+$/, '');
+      const uniqueName = generateUniqueFieldName(`${baseName}_copy`, existingNames);
+      
       const duplicatedElement: BuilderElement = {
         ...elementToDuplicate,
         id: generateElementId(),
-        name: `${elementToDuplicate.name}_copy`,
+        name: uniqueName,
         position: {
           ...elementToDuplicate.position,
           row: elementToDuplicate.position.row + 1,

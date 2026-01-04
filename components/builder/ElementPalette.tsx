@@ -17,7 +17,9 @@ import {
   Calendar, 
   Calculator, 
   Minus, 
-  Heading 
+  Heading,
+  Image,
+  FileText
 } from 'lucide-react';
 
 interface ElementItem {
@@ -81,6 +83,18 @@ const ELEMENT_ITEMS: ElementItem[] = [
     label: 'Divider',
     description: 'Visual separator',
     icon: <Minus className="w-5 h-5" />,
+  },
+  {
+    type: 'image',
+    label: 'Image',
+    description: 'Upload or embed image',
+    icon: <Image className="w-5 h-5" />,
+  },
+  {
+    type: 'footer',
+    label: 'Footer',
+    description: 'Document footer section',
+    icon: <FileText className="w-5 h-5" />,
   },
 ];
 

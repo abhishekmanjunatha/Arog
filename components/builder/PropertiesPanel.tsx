@@ -50,7 +50,7 @@ export function PropertiesPanel() {
       )}
 
       {/* Validation */}
-      {!['divider', 'header', 'calculated'].includes(selectedElement.type) && (
+      {!['divider', 'header', 'calculated', 'image', 'footer'].includes(selectedElement.type) && (
         <ValidationProperties element={selectedElement} onUpdate={updateElement} />
       )}
     </div>
@@ -68,7 +68,7 @@ function BasicProperties({ element, onUpdate }: PropertySectionProps) {
     onUpdate(element.id, { [field]: value });
   };
 
-  const isLayoutElement = ['divider', 'header'].includes(element.type);
+  const isLayoutElement = ['divider', 'header', 'image', 'footer'].includes(element.type);
 
   return (
     <div className="space-y-4">
@@ -449,6 +449,296 @@ function TypeSpecificProperties({ element, onUpdate }: PropertySectionProps) {
                 {align.charAt(0).toUpperCase() + align.slice(1)}
               </button>
             ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Image
+  if (element.type === 'image') {
+    return (
+      <div className="space-y-4">
+        <h4 className="text-xs font-semibold text-gray-500 uppercase">Image Settings</h4>
+        
+        {/* Image URL */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Image URL
+          </label>
+          <input
+            type="url"
+            value={element.properties.src || ''}
+            onChange={(e) => handlePropertyChange('src', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            placeholder="https://example.com/image.jpg"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Enter URL of the image or upload to external hosting
+          </p>
+        </div>
+
+        {/* Alt Text */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Alt Text
+          </label>
+          <input
+            type="text"
+            value={element.properties.alt || ''}
+            onChange={(e) => handlePropertyChange('alt', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            placeholder="Describe the image"
+          />
+        </div>
+
+        {/* Caption */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Caption (Optional)
+          </label>
+          <input
+            type="text"
+            value={element.properties.caption || ''}
+            onChange={(e) => handlePropertyChange('caption', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            placeholder="Image caption text"
+          />
+        </div>
+
+        {/* Width & Height */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Width (px)</label>
+            <input
+              type="number"
+              min={50}
+              max={800}
+              value={element.properties.width || 200}
+              onChange={(e) => handlePropertyChange('width', Number(e.target.value) || 200)}
+              className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Height</label>
+            <select
+              value={element.properties.height === 'auto' ? 'auto' : 'custom'}
+              onChange={(e) => handlePropertyChange('height', e.target.value === 'auto' ? 'auto' : 150)}
+              className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            >
+              <option value="auto">Auto</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+        </div>
+
+        {element.properties.height !== 'auto' && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Height (px)</label>
+            <input
+              type="number"
+              min={50}
+              max={600}
+              value={typeof element.properties.height === 'number' ? element.properties.height : 150}
+              onChange={(e) => handlePropertyChange('height', Number(e.target.value) || 150)}
+              className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            />
+          </div>
+        )}
+
+        {/* Alignment */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Alignment
+          </label>
+          <div className="flex gap-2">
+            {['left', 'center', 'right'].map((align) => (
+              <button
+                key={align}
+                onClick={() => handlePropertyChange('alignment', align)}
+                className={`flex-1 py-2 px-3 rounded-lg border ${
+                  element.properties.alignment === align
+                    ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
+                    : 'border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {align.charAt(0).toUpperCase() + align.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Object Fit */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Object Fit
+          </label>
+          <select
+            value={element.properties.objectFit || 'contain'}
+            onChange={(e) => handlePropertyChange('objectFit', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          >
+            <option value="contain">Contain</option>
+            <option value="cover">Cover</option>
+            <option value="fill">Fill</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+
+        {/* Border Radius */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Border Radius (px)
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={50}
+            value={element.properties.borderRadius || 0}
+            onChange={(e) => handlePropertyChange('borderRadius', Number(e.target.value) || 0)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Footer
+  if (element.type === 'footer') {
+    return (
+      <div className="space-y-4">
+        <h4 className="text-xs font-semibold text-gray-500 uppercase">Footer Settings</h4>
+        
+        {/* Content */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Footer Content
+          </label>
+          <textarea
+            value={element.properties.content || ''}
+            onChange={(e) => handlePropertyChange('content', e.target.value)}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            placeholder="Enter footer text. Use new lines for multiple paragraphs."
+          />
+        </div>
+
+        {/* Font Size */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Font Size
+          </label>
+          <select
+            value={element.properties.fontSize || 'small'}
+            onChange={(e) => handlePropertyChange('fontSize', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          >
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+
+        {/* Alignment */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Alignment
+          </label>
+          <div className="flex gap-2">
+            {['left', 'center', 'right'].map((align) => (
+              <button
+                key={align}
+                onClick={() => handlePropertyChange('alignment', align)}
+                className={`flex-1 py-2 px-3 rounded-lg border ${
+                  element.properties.alignment === align
+                    ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
+                    : 'border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {align.charAt(0).toUpperCase() + align.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Text Color */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Text Color
+          </label>
+          <div className="flex gap-2 items-center">
+            <input
+              type="color"
+              value={element.properties.textColor || '#666666'}
+              onChange={(e) => handlePropertyChange('textColor', e.target.value)}
+              className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
+            />
+            <input
+              type="text"
+              value={element.properties.textColor || '#666666'}
+              onChange={(e) => handlePropertyChange('textColor', e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm"
+              placeholder="#666666"
+            />
+          </div>
+        </div>
+
+        {/* Background Color */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Background Color
+          </label>
+          <div className="flex gap-2 items-center">
+            <input
+              type="color"
+              value={element.properties.backgroundColor || '#ffffff'}
+              onChange={(e) => handlePropertyChange('backgroundColor', e.target.value)}
+              className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
+            />
+            <input
+              type="text"
+              value={element.properties.backgroundColor || 'transparent'}
+              onChange={(e) => handlePropertyChange('backgroundColor', e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm"
+              placeholder="transparent"
+            />
+          </div>
+        </div>
+
+        {/* Show Line */}
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={element.properties.showLine !== false}
+            onChange={(e) => handlePropertyChange('showLine', e.target.checked)}
+            className="w-4 h-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+          />
+          <span className="text-sm text-gray-700">Show separator line</span>
+        </label>
+
+        {/* Padding */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Padding Top (px)</label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={element.properties.paddingTop || 16}
+              onChange={(e) => handlePropertyChange('paddingTop', Number(e.target.value) || 16)}
+              className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Padding Bottom (px)</label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={element.properties.paddingBottom || 8}
+              onChange={(e) => handlePropertyChange('paddingBottom', Number(e.target.value) || 8)}
+              className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            />
           </div>
         </div>
       </div>

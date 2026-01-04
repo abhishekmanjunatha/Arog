@@ -14,22 +14,32 @@ import { Plus } from 'lucide-react';
 export function Canvas() {
   const { state, addElement, dispatch, selectElement } = useBuilder();
   const [isDragOver, setIsDragOver] = React.useState(false);
+  const dragCounter = React.useRef(0);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
-    setIsDragOver(true);
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current++;
+    if (e.dataTransfer.types.includes('elementType') || state.isDragging) {
+      setIsDragOver(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    // Only set to false if we're leaving the canvas, not entering a child
-    if (e.currentTarget === e.target) {
+    e.preventDefault();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
       setIsDragOver(false);
     }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    dragCounter.current = 0;
     setIsDragOver(false);
     
     const elementType = e.dataTransfer.getData('elementType') as ElementType;
@@ -57,6 +67,7 @@ export function Canvas() {
           : 'bg-white border border-gray-200'
       }`}
       onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={handleCanvasClick}

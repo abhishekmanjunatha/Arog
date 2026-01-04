@@ -3,10 +3,10 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
 import { createDocument } from '@/app/actions/documents'
 import type { TemplateContent } from '@/types/template'
 import { prepareDocumentData, substituteVariables } from '@/lib/document-utils'
+import { DocumentForm } from '@/components/documents/DocumentForm'
 
 export default async function NewDocumentPage({
   searchParams,
@@ -161,93 +161,16 @@ export default async function NewDocumentPage({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form action={createDocument} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="template_id">Template *</Label>
-                      <select
-                        id="template_id"
-                        name="template_id"
-                        required
-                        defaultValue={preselectedTemplateId || ''}
-                        onChange={(e) => {
-                          const url = new URL(window.location.href)
-                          url.searchParams.set('templateId', e.target.value)
-                          window.location.href = url.toString()
-                        }}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <option value="">Select a template</option>
-                        {templates.map(template => (
-                          <option key={template.id} value={template.id}>
-                            {template.name} ({template.category?.replace('_', ' ')})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="patient_id">Patient *</Label>
-                      <select
-                        id="patient_id"
-                        name="patient_id"
-                        required
-                        defaultValue={preselectedPatientId || ''}
-                        onChange={(e) => {
-                          const url = new URL(window.location.href)
-                          url.searchParams.set('patientId', e.target.value)
-                          if (preselectedTemplateId) {
-                            url.searchParams.set('templateId', preselectedTemplateId)
-                          }
-                          window.location.href = url.toString()
-                        }}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <option value="">Select a patient</option>
-                        {patients.map(patient => (
-                          <option key={patient.id} value={patient.id}>
-                            {patient.name} {patient.phone ? `- ${patient.phone}` : ''}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {appointments && appointments.length > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="appointment_id">Appointment (Optional)</Label>
-                        <select
-                          id="appointment_id"
-                          name="appointment_id"
-                          defaultValue={preselectedAppointmentId || ''}
-                          onChange={(e) => {
-                            const url = new URL(window.location.href)
-                            if (preselectedTemplateId) url.searchParams.set('templateId', preselectedTemplateId)
-                            if (preselectedPatientId) url.searchParams.set('patientId', preselectedPatientId)
-                            if (e.target.value) url.searchParams.set('appointmentId', e.target.value)
-                            window.location.href = url.toString()
-                          }}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        >
-                          <option value="">No appointment</option>
-                          {appointments.map(appt => (
-                            <option key={appt.id} value={appt.id}>
-                              {new Date(appt.appointment_date).toLocaleDateString()} - {appt.chief_complaint || 'No complaint'}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    <div className="flex gap-4 pt-4">
-                      <Button type="submit" disabled={!preview}>
-                        Generate Document
-                      </Button>
-                      <Link href="/documents">
-                        <Button type="button" variant="outline">
-                          Cancel
-                        </Button>
-                      </Link>
-                    </div>
-                  </form>
+                  <DocumentForm
+                    templates={templates}
+                    patients={patients}
+                    appointments={appointments}
+                    preselectedTemplateId={preselectedTemplateId}
+                    preselectedPatientId={preselectedPatientId}
+                    preselectedAppointmentId={preselectedAppointmentId}
+                    hasPreview={!!preview}
+                    createDocumentAction={createDocument}
+                  />
                 </CardContent>
               </Card>
 

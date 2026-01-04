@@ -23,7 +23,9 @@ export const ELEMENT_TYPES: ElementType[] = [
   'date',
   'calculated',
   'divider',
-  'header'
+  'header',
+  'image',
+  'footer'
 ];
 
 /**
@@ -38,7 +40,9 @@ export const ELEMENT_TYPE_LABELS: Record<ElementType, string> = {
   date: 'Date Picker',
   calculated: 'Calculated Field',
   divider: 'Divider',
-  header: 'Header'
+  header: 'Header',
+  image: 'Image',
+  footer: 'Footer'
 };
 
 /**
@@ -53,7 +57,9 @@ export const ELEMENT_TYPE_ICONS: Record<ElementType, string> = {
   date: '📅',
   calculated: '🧮',
   divider: '➖',
-  header: '📌'
+  header: '📌',
+  image: '🖼️',
+  footer: '📑'
 };
 
 /**
@@ -75,17 +81,35 @@ export function generateFieldName(label: string): string {
 }
 
 /**
- * Create a new element with default values
+ * Generate a unique field name by appending a counter if needed
  */
-export function createDefaultElement(type: ElementType): BuilderElement {
+export function generateUniqueFieldName(baseName: string, existingNames: string[]): string {
+  let name = baseName;
+  let counter = 1;
+  
+  while (existingNames.includes(name)) {
+    counter++;
+    name = `${baseName}_${counter}`;
+  }
+  
+  return name;
+}
+
+/**
+ * Create a new element with default values
+ * Pass existingNames to ensure unique field names
+ */
+export function createDefaultElement(type: ElementType, existingNames: string[] = []): BuilderElement {
   const id = generateElementId();
   const label = ELEMENT_TYPE_LABELS[type];
+  const baseName = generateFieldName(label);
+  const uniqueName = generateUniqueFieldName(baseName, existingNames);
   
   const baseElement: BuilderElement = {
     id,
     type,
     label,
-    name: generateFieldName(label),
+    name: uniqueName,
     required: false,
     properties: {},
     position: { row: 0, col: 0, width: 12 }
@@ -109,6 +133,20 @@ export function createDefaultElement(type: ElementType): BuilderElement {
       break;
     case 'number':
       baseElement.properties.step = 1;
+      break;
+    case 'image':
+      baseElement.properties.src = '';
+      baseElement.properties.alt = 'Image';
+      baseElement.properties.width = 200;
+      baseElement.properties.height = 'auto';
+      baseElement.properties.alignment = 'center';
+      baseElement.properties.objectFit = 'contain';
+      break;
+    case 'footer':
+      baseElement.properties.content = 'Footer Text';
+      baseElement.properties.alignment = 'center';
+      baseElement.properties.fontSize = 'small';
+      baseElement.properties.showLine = true;
       break;
     default:
       break;
@@ -292,7 +330,7 @@ export function validateSchema(schema: BuilderSchema): ValidationResult {
  * Check if an element is an input type (can hold values)
  */
 export function isInputElement(type: ElementType): boolean {
-  return !['divider', 'header'].includes(type);
+  return !['divider', 'header', 'image', 'footer'].includes(type);
 }
 
 /**

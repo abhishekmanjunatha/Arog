@@ -12,3 +12,5 @@ export { DateElement } from './DateElement';
 export { CalculatedElement } from './CalculatedElement';
 export { HeaderElement } from './HeaderElement';
 export { DividerElement } from './DividerElement';
+export { ImageElement } from './ImageElement';
+export { FooterElement } from './FooterElement';

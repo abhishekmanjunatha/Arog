@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import type { BuilderElement } from '@/types/builder'
 
 // Define styles for PDF
@@ -77,6 +77,28 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     textAlign: 'center',
   },
+  customFooter: {
+    marginTop: 20,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#d1d5db',
+    borderTopStyle: 'solid',
+  },
+  customFooterText: {
+    fontSize: 9,
+    color: '#666666',
+  },
+  imageContainer: {
+    marginVertical: 10,
+  },
+  image: {
+    maxWidth: '100%',
+  },
+  imageCaption: {
+    fontSize: 9,
+    color: '#666666',
+    marginTop: 4,
+  },
 })
 
 interface BuilderPDFDocumentProps {
@@ -128,6 +150,50 @@ export function BuilderPDFDocument({
         <Text key={index} style={styles.sectionHeader}>
           {element.label}
         </Text>
+      )
+    }
+
+    // Handle image elements
+    if (element.type === 'image') {
+      const src = element.properties.src
+      const alt = element.properties.alt || 'Image'
+      const caption = element.properties.caption
+      const width = element.properties.width || 200
+      const alignment = element.properties.alignment || 'center'
+      
+      if (!src) return null
+      
+      const alignStyle = alignment === 'center' 
+        ? { alignItems: 'center' as const } 
+        : alignment === 'right' 
+          ? { alignItems: 'flex-end' as const } 
+          : { alignItems: 'flex-start' as const }
+      
+      return (
+        <View key={index} style={[styles.imageContainer, alignStyle]}>
+          <Image 
+            src={src} 
+            style={{ width: width, maxWidth: '100%' }}
+          />
+          {caption && (
+            <Text style={[styles.imageCaption, { textAlign: alignment }]}>{caption}</Text>
+          )}
+        </View>
+      )
+    }
+
+    // Handle footer elements
+    if (element.type === 'footer') {
+      const content = element.properties.content || 'Footer'
+      const alignment = element.properties.alignment || 'center'
+      const showLine = element.properties.showLine !== false
+      
+      return (
+        <View key={index} style={showLine ? styles.customFooter : { marginTop: 20 }}>
+          <Text style={[styles.customFooterText, { textAlign: alignment }]}>
+            {content}
+          </Text>
+        </View>
       )
     }
     

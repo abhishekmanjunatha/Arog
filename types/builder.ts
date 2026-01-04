@@ -11,6 +11,8 @@ export type ElementType =
   | 'calculated'
   | 'divider'
   | 'header'
+  | 'image'
+  | 'footer'
 
 export type PrefillSource = 'patient' | 'doctor' | 'appointment' | 'system'
 
@@ -74,8 +76,23 @@ export interface ElementProperties {
   minLength?: number
   maxLength?: number
   rows?: number // For paragraph
-  fontSize?: 'small' | 'medium' | 'large' // For header/divider
+  fontSize?: 'small' | 'medium' | 'large' // For header/divider/footer
   alignment?: 'left' | 'center' | 'right'
+  // Image properties
+  src?: string
+  alt?: string
+  width?: number
+  height?: number | 'auto'
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none'
+  borderRadius?: number
+  caption?: string
+  // Footer properties
+  content?: string
+  showLine?: boolean
+  textColor?: string
+  backgroundColor?: string
+  paddingTop?: number
+  paddingBottom?: number
 }
 
 export interface BuilderElement {
