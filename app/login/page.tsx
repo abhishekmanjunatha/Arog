@@ -42,7 +42,6 @@ export default async function LoginPage() {
                 name="email"
                 type="email"
                 placeholder="doctor@example.com"
-                className="h-11"
                 required
               />
             </div>
@@ -55,7 +54,6 @@ export default async function LoginPage() {
                 name="password"
                 type="password"
                 placeholder="Enter your password"
-                className="h-11"
                 required
               />
             </div>

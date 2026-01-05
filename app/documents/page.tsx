@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/Header'
 import { Card, CardContent } from '@/components/ui/card'
 import { isBuilderV2Enabled } from '@/lib/feature-flags'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Layers, FileText } from 'lucide-react'
 
 export default async function DocumentsPage({
@@ -90,13 +91,13 @@ export default async function DocumentsPage({
             <Card className="border-0 shadow-md overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                <thead className="border-b bg-muted/50">
+                <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Generated</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Template</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Patient</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Appointment</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Generated</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Template</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Patient</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Appointment</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -104,54 +105,54 @@ export default async function DocumentsPage({
                     const createdDate = new Date(doc.created_at)
 
                     return (
-                      <tr key={doc.id} className="border-b hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium">
+                      <tr key={doc.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                        <td className="px-4 py-3.5">
+                          <div className="text-sm font-medium text-foreground">
                             {createdDate.toLocaleDateString()}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {createdDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium">
+                        <td className="px-4 py-3.5">
+                          <div className="text-sm font-medium text-foreground">
                             {doc.template.name}
                           </div>
                           <div className="text-xs text-muted-foreground capitalize">
                             {doc.template.category?.replace('_', ' ')}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3.5">
                           <Link 
                             href={`/patients/${doc.patient.id}`}
-                            className="text-sm hover:text-primary hover:underline"
+                            className="text-sm font-medium text-foreground hover:text-primary transition-colors hover:underline"
                           >
                             {doc.patient.name}
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground">
                           {doc.appointment ? (
                             <Link 
                               href={`/appointments/${doc.appointment.id}`}
-                              className="hover:text-primary hover:underline"
+                              className="hover:text-primary transition-colors hover:underline"
                             >
                               {new Date(doc.appointment.appointment_date).toLocaleDateString()}
                             </Link>
                           ) : (
-                            <span className="text-muted-foreground">-</span>
+                            <span>-</span>
                           )}
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-2">
+                        <td className="px-4 py-3.5">
+                          <div className="flex gap-3">
                             <Link 
                               href={`/documents/${doc.id}`}
-                              className="text-sm text-primary hover:underline"
+                              className="text-sm font-medium text-primary hover:underline"
                             >
                               View
                             </Link>
                             <Link 
                               href={`/documents/${doc.id}/pdf`}
-                              className="text-sm text-primary hover:underline"
+                              className="text-sm font-medium text-primary hover:underline"
                               target="_blank"
                             >
                               PDF
@@ -168,18 +169,17 @@ export default async function DocumentsPage({
           ) : (
             <Card className="border-0 shadow-md">
               <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="text-6xl mb-4">📄</div>
-                <h3 className="text-xl font-semibold mb-2">No documents found</h3>
-                <p className="text-muted-foreground mb-6">
-                  {patientFilter
+                <EmptyState
+                  icon={FileText}
+                  title="No documents found"
+                  description={patientFilter
                     ? 'No documents found for this patient.'
                     : 'Generate your first document to get started.'}
-                </p>
-                {!patientFilter && (
-                  <Link href="/documents/new">
-                    <Button size="lg">Generate Document</Button>
-                  </Link>
-                )}
+                  action={!patientFilter ? {
+                    label: 'Generate Document',
+                    href: '/documents/new'
+                  } : undefined}
+                />
               </CardContent>
             </Card>
           )}

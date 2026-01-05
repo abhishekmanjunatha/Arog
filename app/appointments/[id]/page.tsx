@@ -3,7 +3,11 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Header } from '@/components/layout/Header'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { updateAppointmentStatus } from '@/app/actions/appointments'
+import { EditAppointmentButton } from '@/components/appointments/EditAppointmentButton'
+import { GenerateDocumentButton } from '@/components/patients/GenerateDocumentButton'
 
 export default async function AppointmentDetailPage({
   params,
@@ -31,6 +35,14 @@ export default async function AppointmentDetailPage({
     notFound()
   }
 
+  // Fetch active templates for document generation
+  const { data: templates } = await supabase
+    .from('templates')
+    .select('id, name, description, category, builder_version, is_active')
+    .eq('doctor_id', user.id)
+    .eq('is_active', true)
+    .order('name')
+
   const appointmentDate = new Date(appointment.appointment_date)
   const isPast = appointmentDate < new Date()
 
@@ -38,40 +50,12 @@ export default async function AppointmentDetailPage({
   const markAsCancelled = updateAppointmentStatus.bind(null, appointment.id, 'cancelled')
   const markAsNoShow = updateAppointmentStatus.bind(null, appointment.id, 'no_show')
 
-  const statusColors: Record<'scheduled' | 'completed' | 'cancelled' | 'no_show', string> = {
-    scheduled: 'bg-blue-50 text-blue-700 border-blue-200',
-    completed: 'bg-green-50 text-green-700 border-green-200',
-    cancelled: 'bg-red-50 text-red-700 border-red-200',
-    no_show: 'bg-gray-50 text-gray-700 border-gray-200',
-  }
-  
-  const statusClass = statusColors[appointment.status as keyof typeof statusColors]
-
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard">
-            <h1 className="text-xl font-bold hover:text-primary transition-colors">
-              Arog Doctor Platform
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/appointments" className="text-sm hover:text-primary">
-              Appointments
-            </Link>
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <form action="/api/auth/logout" method="post">
-              <button className="text-sm text-primary hover:underline">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <Header userEmail={user.email} />
 
       <main className="container mx-auto flex-1 p-6">
-        <div className="max-w-4xl space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Appointment Details</h2>
@@ -80,40 +64,39 @@ export default async function AppointmentDetailPage({
               </p>
             </div>
             <div className="flex gap-2">
-              <Link href={`/appointments/${appointment.id}/edit`}>
-                <Button variant="outline">Edit</Button>
-              </Link>
+              <EditAppointmentButton appointment={appointment} />
             </div>
           </div>
 
-          <div className={`rounded-lg border p-4 ${statusClass}`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">
-                  Status: <span className="uppercase">{appointment.status.replace('_', ' ')}</span>
-                </p>
-              </div>
-              {appointment.status === 'scheduled' && (
-                <div className="flex gap-2">
-                  <form action={markAsCompleted}>
-                    <Button type="submit" size="sm" variant="outline">
-                      Mark Completed
-                    </Button>
-                  </form>
-                  <form action={markAsNoShow}>
-                    <Button type="submit" size="sm" variant="outline">
-                      No Show
-                    </Button>
-                  </form>
-                  <form action={markAsCancelled}>
-                    <Button type="submit" size="sm" variant="destructive">
-                      Cancel
-                    </Button>
-                  </form>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium">Status:</span>
+                  <StatusBadge status={appointment.status} />
                 </div>
-              )}
-            </div>
-          </div>
+                {appointment.status === 'scheduled' && (
+                  <div className="flex gap-2">
+                    <form action={markAsCompleted}>
+                      <Button type="submit" size="sm" variant="outline">
+                        Mark Completed
+                      </Button>
+                    </form>
+                    <form action={markAsNoShow}>
+                      <Button type="submit" size="sm" variant="outline">
+                        No Show
+                      </Button>
+                    </form>
+                    <form action={markAsCancelled}>
+                      <Button type="submit" size="sm" variant="destructive">
+                        Cancel
+                      </Button>
+                    </form>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
@@ -208,11 +191,10 @@ export default async function AppointmentDetailPage({
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-3">
-                <Link href={`/documents/new?appointmentId=${appointment.id}&patientId=${appointment.patient.id}`}>
-                  <Button variant="outline" className="w-full">
-                    Generate Document
-                  </Button>
-                </Link>
+                <GenerateDocumentButton 
+                  patientId={appointment.patient.id} 
+                  templates={templates || []} 
+                />
                 <Link href={`/patients/${appointment.patient.id}`}>
                   <Button variant="outline" className="w-full">
                     View Patient Profile

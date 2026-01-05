@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Header } from '@/components/layout/Header'
 import { createDocument } from '@/app/actions/documents'
 import type { TemplateContent } from '@/types/template'
 import { prepareDocumentData, substituteVariables } from '@/lib/document-utils'
@@ -46,6 +47,17 @@ export default async function NewDocumentPage({
   const preselectedTemplateId = searchParams.templateId
   const preselectedPatientId = searchParams.patientId
   const preselectedAppointmentId = searchParams.appointmentId
+
+  // If patient is preselected, fetch patient details
+  let preselectedPatient = null
+  if (preselectedPatientId) {
+    const { data: patient } = await supabase
+      .from('patients')
+      .select('id, name, phone, email')
+      .eq('id', preselectedPatientId)
+      .single()
+    preselectedPatient = patient
+  }
 
   // If patient is preselected, fetch their appointments
   let appointments = null
@@ -95,33 +107,17 @@ export default async function NewDocumentPage({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard">
-            <h1 className="text-xl font-bold hover:text-primary transition-colors">
-              Arog Doctor Platform
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/documents" className="text-sm hover:text-primary">
-              Documents
-            </Link>
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <form action="/api/auth/logout" method="post">
-              <button className="text-sm text-primary hover:underline">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <Header userEmail={user.email} />
 
       <main className="container mx-auto flex-1 p-6">
         <div className="max-w-6xl space-y-6">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Generate Document</h2>
             <p className="text-muted-foreground">
-              Create a new medical document from a template
+              {preselectedPatient 
+                ? `Create a new medical document for ${preselectedPatient.name}`
+                : 'Create a new medical document from a template'
+              }
             </p>
           </div>
 

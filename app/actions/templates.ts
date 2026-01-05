@@ -156,7 +156,7 @@ export async function createTemplate(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    throw new Error('Not authenticated')
   }
 
   const contentStr = formData.get('content') as string
@@ -187,10 +187,10 @@ export async function createTemplate(formData: FormData) {
     }
 
     if (!validateTemplateContent(content)) {
-      redirect('/templates/new?error=' + encodeURIComponent('Invalid template content'))
+      throw new Error('Invalid template content')
     }
   } catch (error) {
-    redirect('/templates/new?error=' + encodeURIComponent('Failed to parse template'))
+    throw new Error('Failed to parse template')
   }
 
   const newTemplate: TemplateInsert = {
@@ -209,11 +209,11 @@ export async function createTemplate(formData: FormData) {
     .single()
 
   if (error) {
-    redirect('/templates/new?error=' + encodeURIComponent(error.message))
+    throw new Error(error.message)
   }
 
   revalidatePath('/templates')
-  redirect(`/templates/${data.id}`)
+  return data
 }
 
 export async function updateTemplate(templateId: string, formData: FormData) {
@@ -221,7 +221,7 @@ export async function updateTemplate(templateId: string, formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    throw new Error('Not authenticated')
   }
 
   const contentStr = formData.get('content') as string
@@ -251,10 +251,10 @@ export async function updateTemplate(templateId: string, formData: FormData) {
     }
 
     if (!validateTemplateContent(content)) {
-      redirect(`/templates/${templateId}/edit?error=` + encodeURIComponent('Invalid template content'))
+      throw new Error('Invalid template content')
     }
   } catch (error) {
-    redirect(`/templates/${templateId}/edit?error=` + encodeURIComponent('Failed to parse template'))
+    throw new Error('Failed to parse template')
   }
 
   const updates: TemplateUpdate = {
@@ -271,12 +271,11 @@ export async function updateTemplate(templateId: string, formData: FormData) {
     .eq('doctor_id', user.id)
 
   if (error) {
-    redirect(`/templates/${templateId}/edit?error=` + encodeURIComponent(error.message))
+    throw new Error(error.message)
   }
 
   revalidatePath('/templates')
   revalidatePath(`/templates/${templateId}`)
-  redirect(`/templates/${templateId}?success=true`)
 }
 
 export async function toggleTemplateActive(templateId: string, isActive: boolean) {

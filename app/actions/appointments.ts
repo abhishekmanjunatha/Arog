@@ -38,11 +38,11 @@ export async function createAppointment(formData: FormData) {
     .single()
 
   if (error) {
-    redirect('/appointments/new?error=' + encodeURIComponent(error.message))
+    throw new Error(error.message)
   }
 
   revalidatePath('/appointments')
-  redirect(`/appointments/${data.id}`)
+  return data
 }
 
 export async function updateAppointment(appointmentId: string, formData: FormData) {

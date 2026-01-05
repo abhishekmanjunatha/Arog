@@ -105,46 +105,60 @@ const ELEMENT_ITEMS: ElementItem[] = [
   },
 ];
 
-export function ElementPalette() {
+interface ElementPaletteProps {
+  onElementAdded?: () => void;
+}
+
+export function ElementPalette({ onElementAdded }: ElementPaletteProps = {}) {
   const { addElement } = useBuilder();
 
   const handleClick = (type: ElementType) => {
     addElement(type);
+    // Call callback when element is added (useful for closing mobile drawer)
+    if (onElementAdded) {
+      onElementAdded();
+    }
   };
 
   return (
-    <div className="p-4">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Elements</h3>
-      <p className="text-xs text-gray-500 mb-4">
-        Click to add elements
-      </p>
+    <div className="p-3 md:p-4">
+      <div className="mb-4 pb-3 border-b border-gray-200">
+        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+          <span className="text-cyan-600">+</span> Elements
+        </h3>
+        <p className="text-xs text-gray-500 mt-1">
+          Click to add to your form
+        </p>
+      </div>
       
-      <div className="space-y-2">
-        {ELEMENT_ITEMS.map((item) => (
-          <div
+      {/* Grid layout for mobile, list for desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+        {ELEMENT_ITEMS.map((item, index) => (
+          <button
             key={item.type}
             onClick={() => handleClick(item.type)}
-            className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-cyan-50 hover:border-cyan-200 border border-transparent transition-all group"
+            className="flex flex-col lg:flex-row items-center lg:items-start gap-2 lg:gap-3 p-3 bg-white lg:bg-gray-50 rounded-xl cursor-pointer hover:bg-cyan-50 hover:border-cyan-300 border-2 border-gray-200 lg:border-transparent transition-all group min-h-[88px] lg:min-h-[64px] touch-manipulation active:scale-95 shadow-sm lg:shadow-none hover:shadow-md"
+            style={{ animationDelay: `${index * 30}ms` }}
           >
-            <div className="flex-shrink-0 w-10 h-10 bg-white rounded-lg flex items-center justify-center text-gray-600 group-hover:text-cyan-600 group-hover:bg-cyan-100 transition-colors shadow-sm">
+            <div className="flex-shrink-0 w-11 h-11 bg-gradient-to-br from-gray-50 to-white rounded-lg flex items-center justify-center text-gray-600 group-hover:text-cyan-600 group-hover:from-cyan-50 group-hover:to-cyan-100 transition-all shadow-sm group-hover:shadow-md border border-gray-200 group-hover:border-cyan-300">
               {item.icon}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 group-hover:text-cyan-900">
+            <div className="flex-1 min-w-0 text-center lg:text-left">
+              <p className="text-sm font-semibold text-gray-900 group-hover:text-cyan-700 transition-colors">
                 {item.label}
               </p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-gray-500 group-hover:text-gray-600 truncate hidden lg:block mt-0.5">
                 {item.description}
               </p>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
-      {/* Quick Tips */}
-      <div className="mt-6 p-3 bg-cyan-50 rounded-lg">
-        <h4 className="text-xs font-semibold text-cyan-900 mb-2">Quick Tips</h4>
-        <ul className="text-xs text-cyan-700 space-y-1">
+      {/* Quick Tips - Desktop only */}
+      <div className="hidden lg:block mt-6 p-3 bg-info-light rounded-lg">
+        <h4 className="text-xs font-semibold text-info mb-2">Quick Tips</h4>
+        <ul className="text-xs text-info/80 space-y-1">
           <li>• Click to add element to form</li>
           <li>• Use ↑↓ arrows to reorder</li>
           <li>• Use ←→ arrows to resize</li>

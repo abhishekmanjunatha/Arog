@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Header } from '@/components/layout/Header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { QuickActions } from '@/components/dashboard/QuickActions'
+import { Users, Calendar, FileText, Folder, UserPlus, CalendarPlus, FilePlus, PlusCircle, ArrowRight } from 'lucide-react'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -12,6 +14,14 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/login')
   }
+
+  // Fetch patients for appointment creation
+  const { data: patients } = await supabase
+    .from('patients')
+    .select('id, name')
+    .eq('doctor_id', user.id)
+    .eq('is_active', true)
+    .order('name')
 
   // Fetch dashboard stats
   const { count: patientsCount } = await supabase
@@ -44,7 +54,7 @@ export default async function DashboardPage() {
       title: 'Total Patients',
       value: patientsCount || 0,
       href: '/patients',
-      icon: '👥',
+      icon: Users,
       change: null,
       color: 'from-blue-500 to-cyan-500'
     },
@@ -52,7 +62,7 @@ export default async function DashboardPage() {
       title: "Today's Appointments",
       value: todayAppointments || 0,
       href: '/appointments',
-      icon: '📅',
+      icon: Calendar,
       change: null,
       color: 'from-purple-500 to-pink-500'
     },
@@ -60,7 +70,7 @@ export default async function DashboardPage() {
       title: 'Active Templates',
       value: templatesCount || 0,
       href: '/templates',
-      icon: '📝',
+      icon: Folder,
       change: null,
       color: 'from-amber-500 to-orange-500'
     },
@@ -68,40 +78,9 @@ export default async function DashboardPage() {
       title: 'Documents Generated',
       value: documentsCount || 0,
       href: '/documents',
-      icon: '📄',
+      icon: FileText,
       change: null,
       color: 'from-emerald-500 to-green-500'
-    }
-  ]
-
-  const quickActions = [
-    {
-      title: 'Add Patient',
-      description: 'Register a new patient',
-      href: '/patients/new',
-      icon: '👤',
-      color: 'hover:border-blue-500 hover:bg-blue-50'
-    },
-    {
-      title: 'New Appointment',
-      description: 'Schedule appointment',
-      href: '/appointments/new',
-      icon: '📅',
-      color: 'hover:border-purple-500 hover:bg-purple-50'
-    },
-    {
-      title: 'Create Template',
-      description: 'Design new document',
-      href: '/templates/new',
-      icon: '📝',
-      color: 'hover:border-amber-500 hover:bg-amber-50'
-    },
-    {
-      title: 'Generate Document',
-      description: 'Create from template',
-      href: '/documents/new',
-      icon: '📄',
-      color: 'hover:border-emerald-500 hover:bg-emerald-50'
     }
   ]
 
@@ -121,65 +100,37 @@ export default async function DashboardPage() {
           
           {/* Stats Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-            {stats.map((stat) => (
-              <Link key={stat.title} href={stat.href} className="block group">
-                <Card className="card-hover border-0 shadow-md overflow-hidden">
-                  <div className={`h-2 bg-gradient-to-r ${stat.color}`} />
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </CardTitle>
-                    <span className="text-3xl opacity-60 group-hover:scale-110 transition-transform">
-                      {stat.icon}
-                    </span>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold">{stat.value}</div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+            {stats.map((stat) => {
+              const Icon = stat.icon
+              return (
+                <Link key={stat.title} href={stat.href} className="block group">
+                  <Card className="border border-border/50 hover:border-primary/50 hover:shadow-lg transition-all duration-200 overflow-hidden">
+                    <div className={`h-2 bg-gradient-to-r ${stat.color}`} />
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {stat.title}
+                      </CardTitle>
+                      <div className="p-2 rounded-lg bg-muted group-hover:scale-110 transition-transform">
+                        <Icon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold">{stat.value}</div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )
+            })}
           </div>
 
           {/* Quick Actions */}
-          <Card className="border-0 shadow-md">
+          <Card className="border-0 shadow-md mb-8">
             <CardHeader>
               <CardTitle className="text-2xl">Quick Actions</CardTitle>
               <CardDescription>Frequently used actions to manage your practice</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {quickActions.map((action) => (
-                  <Link
-                    key={action.title}
-                    href={action.href}
-                    className={`group flex flex-col gap-3 rounded-xl border-2 p-6 transition-all duration-200 ${action.color}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-4xl group-hover:scale-110 transition-transform">
-                        {action.icon}
-                      </span>
-                      <svg
-                        className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-1">{action.title}</h3>
-                      <p className="text-sm text-muted-foreground">{action.description}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              <QuickActions patients={patients || []} />
             </CardContent>
           </Card>
 

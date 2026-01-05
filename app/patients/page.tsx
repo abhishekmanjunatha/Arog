@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Header } from '@/components/layout/Header'
+import { EmptyState } from '@/components/ui/empty-state'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { AddPatientButton } from '@/components/patients/AddPatientButton'
+import { Users } from 'lucide-react'
 
 export default async function PatientsPage({
   searchParams,
@@ -51,9 +55,7 @@ export default async function PatientsPage({
                   Manage your patient records
                 </p>
               </div>
-              <Link href="/patients/new">
-                <Button size="lg" className="w-full sm:w-auto shadow-md">+ Add New Patient</Button>
-              </Link>
+              <AddPatientButton />
             </div>
 
             <Card className="border-0 shadow-md">
@@ -82,15 +84,15 @@ export default async function PatientsPage({
               <Card className="border-0 shadow-md overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                <thead className="border-b bg-muted/50">
+                <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Phone</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Email</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Age</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Gender</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Name</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Phone</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Email</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Age</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Gender</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Status</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -100,32 +102,26 @@ export default async function PatientsPage({
                       : null
 
                     return (
-                      <tr key={patient.id} className="border-b hover:bg-muted/50">
-                        <td className="px-4 py-3">
+                      <tr key={patient.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                        <td className="px-4 py-3.5">
                           <Link 
                             href={`/patients/${patient.id}`}
-                            className="font-medium hover:text-primary"
+                            className="font-medium text-foreground hover:text-primary transition-colors"
                           >
                             {patient.name}
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-sm">{patient.phone || '-'}</td>
-                        <td className="px-4 py-3 text-sm">{patient.email || '-'}</td>
-                        <td className="px-4 py-3 text-sm">{age || '-'}</td>
-                        <td className="px-4 py-3 text-sm capitalize">{patient.gender || '-'}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                            patient.is_active
-                              ? 'bg-green-50 text-green-700'
-                              : 'bg-gray-50 text-gray-700'
-                          }`}>
-                            {patient.is_active ? 'Active' : 'Inactive'}
-                          </span>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground">{patient.phone || '-'}</td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground">{patient.email || '-'}</td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground">{age || '-'}</td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground capitalize">{patient.gender || '-'}</td>
+                        <td className="px-4 py-3.5">
+                          <StatusBadge status={patient.is_active ? 'active' : 'inactive'} />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3.5">
                           <Link 
                             href={`/patients/${patient.id}`}
-                            className="text-sm text-primary hover:underline"
+                            className="text-sm font-medium text-primary hover:underline"
                           >
                             View
                           </Link>
@@ -140,18 +136,17 @@ export default async function PatientsPage({
             ) : (
               <Card className="border-0 shadow-md">
                 <CardContent className="flex flex-col items-center justify-center py-16">
-                  <div className="text-6xl mb-4">👥</div>
-                  <h3 className="text-xl font-semibold mb-2">No patients found</h3>
-                  <p className="text-muted-foreground mb-6">
-                    {search 
+                  <EmptyState
+                    icon={Users}
+                    title="No patients found"
+                    description={search 
                       ? 'Try adjusting your search'
                       : 'Add your first patient to get started'}
-                  </p>
-                  {!search && (
-                    <Link href="/patients/new">
-                      <Button size="lg">Add First Patient</Button>
-                    </Link>
-                  )}
+                    action={!search ? {
+                      label: 'Add First Patient',
+                      href: '/patients/new'
+                    } : undefined}
+                  />
                 </CardContent>
               </Card>
             )}

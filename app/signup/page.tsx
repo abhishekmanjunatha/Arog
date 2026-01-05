@@ -42,7 +42,6 @@ export default async function SignUpPage() {
                 name="name"
                 type="text"
                 placeholder="Dr. John Doe"
-                className="h-11"
                 required
               />
             </div>
@@ -55,7 +54,6 @@ export default async function SignUpPage() {
                 name="email"
                 type="email"
                 placeholder="doctor@example.com"
-                className="h-11"
                 required
               />
             </div>
@@ -68,7 +66,6 @@ export default async function SignUpPage() {
                 name="password"
                 type="password"
                 placeholder="Minimum 6 characters"
-                className="h-11"
                 minLength={6}
                 required
               />

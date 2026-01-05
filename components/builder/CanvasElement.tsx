@@ -144,23 +144,23 @@ export function CanvasElement({ element, index, isSelected, totalElements }: Can
 
   return (
     <div
-      className={`group relative rounded-lg border-2 transition-all ${
+      className={`group relative rounded-xl border-2 transition-all duration-200 cursor-pointer ${
         isSelected
-          ? 'border-cyan-500 bg-cyan-50 shadow-md'
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+          ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
+          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md hover:scale-[1.01]'
       }`}
       onClick={handleClick}
     >
-      {/* Arrow Controls - Left Side */}
-      <div className="absolute left-0 top-0 bottom-0 w-10 flex flex-col items-center justify-center gap-1 bg-gray-50 rounded-l-lg border-r border-gray-200">
+      {/* Arrow Controls - Left Side (Touch-Optimized) */}
+      <div className="absolute left-0 top-0 bottom-0 w-11 md:w-12 flex flex-col items-center justify-center gap-1.5 bg-gradient-to-b from-gray-50 to-gray-100/50 rounded-l-xl border-r border-gray-200">
         {/* Move Up */}
         <button
           onClick={handleMoveUp}
           disabled={!canMoveUp}
-          className={`p-1 rounded transition-colors ${
+          className={`p-1.5 md:p-2 rounded-lg transition-all min-h-[36px] md:min-h-[40px] ${
             canMoveUp 
-              ? 'hover:bg-gray-200 text-gray-600 hover:text-gray-800' 
-              : 'text-gray-300 cursor-not-allowed'
+              ? 'hover:bg-gray-200 active:bg-gray-300 text-gray-700 hover:text-gray-900 hover:scale-110' 
+              : 'text-gray-300 cursor-not-allowed opacity-40'
           }`}
           title="Move Up"
         >
@@ -172,10 +172,10 @@ export function CanvasElement({ element, index, isSelected, totalElements }: Can
           <button
             onClick={handleDecreaseWidth}
             disabled={!canDecreaseWidth}
-            className={`p-0.5 rounded transition-colors ${
+            className={`p-1 rounded-md transition-all min-h-[32px] min-w-[18px] ${
               canDecreaseWidth 
-                ? 'hover:bg-blue-100 text-blue-600 hover:text-blue-800' 
-                : 'text-gray-300 cursor-not-allowed'
+                ? 'hover:bg-primary/10 active:bg-primary/20 text-primary hover:text-primary-hover hover:scale-110' 
+                : 'text-gray-300 cursor-not-allowed opacity-40'
             }`}
             title="Decrease Width"
           >
@@ -184,10 +184,10 @@ export function CanvasElement({ element, index, isSelected, totalElements }: Can
           <button
             onClick={handleIncreaseWidth}
             disabled={!canIncreaseWidth}
-            className={`p-0.5 rounded transition-colors ${
+            className={`p-1 rounded-md transition-all min-h-[32px] min-w-[18px] ${
               canIncreaseWidth 
-                ? 'hover:bg-blue-100 text-blue-600 hover:text-blue-800' 
-                : 'text-gray-300 cursor-not-allowed'
+                ? 'hover:bg-primary/10 active:bg-primary/20 text-primary hover:text-primary-hover hover:scale-110' 
+                : 'text-gray-300 cursor-not-allowed opacity-40'
             }`}
             title="Increase Width"
           >
@@ -199,10 +199,10 @@ export function CanvasElement({ element, index, isSelected, totalElements }: Can
         <button
           onClick={handleMoveDown}
           disabled={!canMoveDown}
-          className={`p-1 rounded transition-colors ${
+          className={`p-1.5 md:p-2 rounded-lg transition-all min-h-[36px] md:min-h-[40px] ${
             canMoveDown 
-              ? 'hover:bg-gray-200 text-gray-600 hover:text-gray-800' 
-              : 'text-gray-300 cursor-not-allowed'
+              ? 'hover:bg-gray-200 active:bg-gray-300 text-gray-700 hover:text-gray-900 hover:scale-110' 
+              : 'text-gray-300 cursor-not-allowed opacity-40'
           }`}
           title="Move Down"
         >
@@ -211,39 +211,41 @@ export function CanvasElement({ element, index, isSelected, totalElements }: Can
       </div>
 
       {/* Element Content */}
-      <div className="ml-10 p-4">
+      <div className="ml-11 md:ml-12 p-3 md:p-4">
         {/* Header Row */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500">{ELEMENT_ICONS[element.type]}</span>
-            <span className="text-xs font-medium text-gray-500 uppercase">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-gray-600">{ELEMENT_ICONS[element.type]}</span>
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
               {element.type}
             </span>
             {element.required && (
-              <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+              <span className="badge badge-destructive">
                 Required
               </span>
             )}
             {isPrefilled && (
-              <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded flex items-center gap-1">
+              <span className="badge badge-info flex items-center gap-1">
                 {isReadOnly && <Lock className="w-3 h-3" />}
                 Prefilled
               </span>
             )}
           </div>
 
-          {/* Actions */}
-          <div className={`flex items-center gap-1 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+          {/* Actions - Touch-optimized */}
+          <div className={`flex items-center gap-1 ${
+            isSelected ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'
+          } transition-all duration-200`}>
             <button
               onClick={handleDuplicate}
-              className="p-1.5 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+              className="p-2 rounded-lg hover:bg-gray-100 active:bg-gray-200 text-gray-600 hover:text-gray-800 transition-all min-h-[36px] min-w-[36px]"
               title="Duplicate"
             >
               <Copy className="w-4 h-4" />
             </button>
             <button
               onClick={handleDelete}
-              className="p-1.5 rounded hover:bg-red-100 text-gray-500 hover:text-red-600"
+              className="p-2 rounded-lg hover:bg-destructive-light active:bg-destructive-light/80 text-gray-600 hover:text-destructive transition-all min-h-[36px] min-w-[36px]"
               title="Delete"
             >
               <Trash2 className="w-4 h-4" />
@@ -299,13 +301,21 @@ export function CanvasElement({ element, index, isSelected, totalElements }: Can
                   )}
                 </div>
               ) : element.type === 'calculated' ? (
-                <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm flex items-center gap-2">
-                  <Calculator className="w-4 h-4" />
-                  <span>
-                    Calculated: {element.properties.calculation === 'bmi' ? 'BMI' : 
-                                  element.properties.calculation === 'age' ? 'Age' : 
-                                  'Custom Formula'}
-                  </span>
+                <div className="px-4 py-3 bg-gradient-to-r from-warning-light to-warning-light/50 border border-warning/20 rounded-lg flex items-center gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-warning/10 rounded-lg flex items-center justify-center">
+                    <Calculator className="w-5 h-5 text-warning" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {element.properties.calculation === 'bmi' ? 'Body Mass Index (BMI)' : 
+                       element.properties.calculation === 'age' ? 'Age Calculator' :
+                       element.properties.calculation === 'bsa' ? 'Body Surface Area' :
+                       element.properties.calculation === 'ibw' ? 'Ideal Body Weight' :
+                       element.properties.calculation === 'crcl' ? 'Creatinine Clearance' :
+                       'Custom Formula'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">Auto-calculated field</p>
+                  </div>
                 </div>
               ) : element.type === 'medicalHistory' ? (
                 <div className="space-y-2">
@@ -347,9 +357,9 @@ export function CanvasElement({ element, index, isSelected, totalElements }: Can
         </div>
       </div>
 
-      {/* Selection Indicator */}
+      {/* Selection Indicator - Enhanced */}
       {isSelected && (
-        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-cyan-500 rounded-full" />
+        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-12 bg-gradient-to-b from-primary via-primary-hover to-primary rounded-full shadow-sm animate-pulse" />
       )}
     </div>
   );

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Header } from '@/components/layout/Header'
 import { updateAppointment } from '@/app/actions/appointments'
 
 export default async function EditAppointmentPage({
@@ -41,29 +42,10 @@ export default async function EditAppointmentPage({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard">
-            <h1 className="text-xl font-bold hover:text-primary transition-colors">
-              Arog Doctor Platform
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/appointments" className="text-sm hover:text-primary">
-              Appointments
-            </Link>
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <form action="/api/auth/logout" method="post">
-              <button className="text-sm text-primary hover:underline">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <Header userEmail={user.email} />
 
       <main className="container mx-auto flex-1 p-6">
-        <div className="max-w-2xl space-y-6">
+        <div className="max-w-3xl mx-auto space-y-6">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Edit Appointment</h2>
             <p className="text-muted-foreground">
@@ -71,18 +53,18 @@ export default async function EditAppointmentPage({
             </p>
           </div>
 
-          <Card>
-            <CardHeader>
+          <Card className="border-0 shadow-md">
+            <CardHeader className="border-b bg-muted/30">
               <CardTitle>Appointment Details</CardTitle>
               <CardDescription>
                 Patient: {appointment.patient.name}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form action={updateAction} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+            <CardContent className="pt-6">
+              <form action={updateAction} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="appointment_date">Date *</Label>
+                    <Label htmlFor="appointment_date" className="text-sm font-medium">Date *</Label>
                     <Input
                       id="appointment_date"
                       name="appointment_date"
@@ -92,7 +74,7 @@ export default async function EditAppointmentPage({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="appointment_time">Time *</Label>
+                    <Label htmlFor="appointment_time" className="text-sm font-medium">Time *</Label>
                     <Input
                       id="appointment_time"
                       name="appointment_time"
@@ -103,9 +85,9 @@ export default async function EditAppointmentPage({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="duration_minutes">Duration (minutes)</Label>
+                    <Label htmlFor="duration_minutes" className="text-sm font-medium">Duration (minutes)</Label>
                     <Input
                       id="duration_minutes"
                       name="duration_minutes"
@@ -116,7 +98,7 @@ export default async function EditAppointmentPage({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
+                    <Label htmlFor="status" className="text-sm font-medium">Status</Label>
                     <select
                       id="status"
                       name="status"
@@ -131,40 +113,45 @@ export default async function EditAppointmentPage({
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="chief_complaint">Chief Complaint</Label>
-                  <textarea
-                    id="chief_complaint"
-                    name="chief_complaint"
-                    rows={2}
-                    defaultValue={appointment.chief_complaint || ''}
-                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
+                <div className="pt-4 border-t">
+                  <h3 className="text-lg font-semibold mb-4">Clinical Information</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="chief_complaint" className="text-sm font-medium">Chief Complaint</Label>
+                      <textarea
+                        id="chief_complaint"
+                        name="chief_complaint"
+                        rows={2}
+                        defaultValue={appointment.chief_complaint || ''}
+                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="diagnosis" className="text-sm font-medium">Diagnosis</Label>
+                      <textarea
+                        id="diagnosis"
+                        name="diagnosis"
+                        rows={2}
+                        defaultValue={appointment.diagnosis || ''}
+                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
+                      <textarea
+                        id="notes"
+                        name="notes"
+                        rows={3}
+                        defaultValue={appointment.notes || ''}
+                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="diagnosis">Diagnosis</Label>
-                  <textarea
-                    id="diagnosis"
-                    name="diagnosis"
-                    rows={2}
-                    defaultValue={appointment.diagnosis || ''}
-                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    rows={3}
-                    defaultValue={appointment.notes || ''}
-                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
-
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-4 pt-6 border-t">
                   <Button type="submit">
                     Save Changes
                   </Button>

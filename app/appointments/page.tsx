@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Header } from '@/components/layout/Header'
+import { EmptyState } from '@/components/ui/empty-state'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { AddAppointmentButton } from '@/components/appointments/AddAppointmentButton'
+import { Calendar } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 
 function AppointmentsContent() {
@@ -15,6 +19,7 @@ function AppointmentsContent() {
   const searchParams = useSearchParams()
   const [user, setUser] = useState<User | null>(null)
   const [appointments, setAppointments] = useState<any[]>([])
+  const [patients, setPatients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   const statusFilter = searchParams.get('status') || ''
@@ -31,6 +36,16 @@ function AppointmentsContent() {
       }
 
       setUser(user)
+
+      // Fetch patients for the appointment form
+      const { data: patientsData } = await supabase
+        .from('patients')
+        .select('id, name')
+        .eq('doctor_id', user.id)
+        .eq('is_active', true)
+        .order('name')
+
+      setPatients(patientsData || [])
 
       let query = supabase
         .from('appointments')
@@ -75,13 +90,6 @@ function AppointmentsContent() {
     { value: 'no_show', label: 'No Show' },
   ]
 
-  const statusColors: Record<'scheduled' | 'completed' | 'cancelled' | 'no_show', string> = {
-    scheduled: 'bg-blue-50 text-blue-700',
-    completed: 'bg-green-50 text-green-700',
-    cancelled: 'bg-red-50 text-red-700',
-    no_show: 'bg-gray-50 text-gray-700',
-  }
-
   const handleStatusChange = (status: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (status) {
@@ -116,9 +124,7 @@ function AppointmentsContent() {
                 Manage your appointment schedule
               </p>
             </div>
-            <Link href="/appointments/new">
-              <Button size="lg" className="w-full sm:w-auto shadow-md">+ Schedule Appointment</Button>
-            </Link>
+            <AddAppointmentButton patients={patients} size="lg" />
           </div>
 
           <Card className="border-0 shadow-md">
@@ -160,50 +166,47 @@ function AppointmentsContent() {
             <Card className="border-0 shadow-md overflow-hidden">
               <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="border-b bg-muted/50">
+                <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Date & Time</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Patient</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Contact</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Duration</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Date & Time</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Patient</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Contact</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Duration</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Status</th>
+                    <th className="px-4 py-3.5 text-left text-sm font-semibold text-foreground">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {appointments.map((appointment) => {
                     const appointmentDate = new Date(appointment.appointment_date)
-                    const statusClass = statusColors[appointment.status as keyof typeof statusColors]
 
                     return (
-                      <tr key={appointment.id} className="border-b hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium">
+                      <tr key={appointment.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                        <td className="px-4 py-3.5">
+                          <div className="text-sm font-medium text-foreground">
                             {appointmentDate.toLocaleDateString()}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3.5">
                           <Link 
                             href={`/patients/${appointment.patient.id}`}
-                            className="font-medium hover:text-primary"
+                            className="font-medium text-foreground hover:text-primary transition-colors"
                           >
                             {appointment.patient.name}
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-sm">{appointment.patient.phone || '-'}</td>
-                        <td className="px-4 py-3 text-sm">{appointment.duration_minutes} min</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${statusClass}`}>
-                            {appointment.status.replace('_', ' ')}
-                          </span>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground">{appointment.patient.phone || '-'}</td>
+                        <td className="px-4 py-3.5 text-sm text-muted-foreground">{appointment.duration_minutes} min</td>
+                        <td className="px-4 py-3.5">
+                          <StatusBadge status={appointment.status} />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3.5">
                           <Link 
                             href={`/appointments/${appointment.id}`}
-                            className="text-sm text-primary hover:underline"
+                            className="text-sm font-medium text-primary hover:underline"
                           >
                             View
                           </Link>
@@ -218,18 +221,17 @@ function AppointmentsContent() {
           ) : (
             <Card className="border-0 shadow-md">
               <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="text-6xl mb-4">📅</div>
-                <h3 className="text-xl font-semibold mb-2">No appointments found</h3>
-                <p className="text-muted-foreground mb-6">
-                  {statusFilter || dateFilter
+                <EmptyState
+                  icon={Calendar}
+                  title="No appointments found"
+                  description={statusFilter || dateFilter
                     ? 'Try adjusting your filters'
                     : 'Schedule your first appointment to get started'}
-                </p>
-                {!statusFilter && !dateFilter && (
-                  <Link href="/appointments/new">
-                    <Button size="lg">Schedule First Appointment</Button>
-                  </Link>
-                )}
+                  action={!statusFilter && !dateFilter ? {
+                    label: 'Schedule First Appointment',
+                    href: '/appointments/new'
+                  } : undefined}
+                />
               </CardContent>
             </Card>
           )}

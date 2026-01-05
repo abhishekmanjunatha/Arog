@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Header } from '@/components/layout/Header'
 import { createPatient } from '@/app/actions/patients'
 
 export default async function NewPatientPage() {
@@ -17,47 +18,28 @@ export default async function NewPatientPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard">
-            <h1 className="text-xl font-bold hover:text-primary transition-colors">
-              Arog Doctor Platform
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/patients" className="text-sm hover:text-primary">
-              Patients
-            </Link>
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <form action="/api/auth/logout" method="post">
-              <button className="text-sm text-primary hover:underline">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <Header userEmail={user.email} />
 
       <main className="container mx-auto flex-1 p-6">
-        <div className="max-w-2xl space-y-6">
+        <div className="max-w-3xl mx-auto space-y-6">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Add New Patient</h2>
-            <p className="text-muted-foreground">
-              Create a new patient record
+            <p className="text-muted-foreground mt-1">
+              Create a patient record with medical information
             </p>
           </div>
 
-          <Card>
-            <CardHeader>
+          <Card className="border-0 shadow-md">
+            <CardHeader className="border-b bg-muted/30">
               <CardTitle>Patient Information</CardTitle>
               <CardDescription>
-                Fill in the patient details below
+                Basic details and contact information
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form action={createPatient} className="space-y-4">
+            <CardContent className="pt-6">
+              <form action={createPatient} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="name" className="text-sm font-medium">Full Name *</Label>
                   <Input
                     id="name"
                     name="name"
@@ -67,9 +49,9 @@ export default async function NewPatientPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
                     <Input
                       id="phone"
                       name="phone"
@@ -78,7 +60,7 @@ export default async function NewPatientPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                     <Input
                       id="email"
                       name="email"
@@ -88,9 +70,9 @@ export default async function NewPatientPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="date_of_birth">Date of Birth</Label>
+                    <Label htmlFor="date_of_birth" className="text-sm font-medium">Date of Birth</Label>
                     <Input
                       id="date_of_birth"
                       name="date_of_birth"
@@ -98,7 +80,7 @@ export default async function NewPatientPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="gender">Gender</Label>
+                    <Label htmlFor="gender" className="text-sm font-medium">Gender</Label>
                     <select
                       id="gender"
                       name="gender"
@@ -111,7 +93,7 @@ export default async function NewPatientPage() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="blood_group">Blood Group</Label>
+                    <Label htmlFor="blood_group" className="text-sm font-medium">Blood Group</Label>
                     <Input
                       id="blood_group"
                       name="blood_group"
@@ -122,7 +104,7 @@ export default async function NewPatientPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address" className="text-sm font-medium">Address</Label>
                   <Input
                     id="address"
                     name="address"
@@ -131,34 +113,40 @@ export default async function NewPatientPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="medical_history">Medical History</Label>
-                  <textarea
-                    id="medical_history"
-                    name="medical_history"
-                    rows={3}
-                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    placeholder="Previous conditions, surgeries, etc."
-                  />
+                <div className="pt-4 border-t">
+                  <h4 className="text-sm font-semibold mb-4">Medical Information</h4>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="medical_history" className="text-sm font-medium">Medical History</Label>
+                      <textarea
+                        id="medical_history"
+                        name="medical_history"
+                        rows={3}
+                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                        placeholder="Previous conditions, surgeries, etc."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="allergies" className="text-sm font-medium">Allergies</Label>
+                      <textarea
+                        id="allergies"
+                        name="allergies"
+                        rows={2}
+                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                        placeholder="Drug allergies, food allergies, etc."
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="allergies">Allergies</Label>
-                  <textarea
-                    id="allergies"
-                    name="allergies"
-                    rows={2}
-                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    placeholder="Drug allergies, food allergies, etc."
-                  />
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <Button type="submit">
+                <div className="flex gap-3 pt-6 border-t">
+                  <Button type="submit" className="min-w-[120px]">
                     Create Patient
                   </Button>
                   <Link href="/patients">
-                    <Button type="button" variant="outline">
+                    <Button type="button" variant="outline" className="min-w-[120px]">
                       Cancel
                     </Button>
                   </Link>

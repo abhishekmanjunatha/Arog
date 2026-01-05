@@ -33,11 +33,11 @@ export async function createPatient(formData: FormData) {
     .single()
 
   if (error) {
-    redirect('/patients/new?error=' + encodeURIComponent(error.message))
+    throw new Error(error.message)
   }
 
   revalidatePath('/patients')
-  redirect(`/patients/${data.id}`)
+  return data
 }
 
 export async function updatePatient(patientId: string, formData: FormData) {

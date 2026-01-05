@@ -3,7 +3,16 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Header } from '@/components/layout/Header'
 import { softDeletePatient, restorePatient } from '@/app/actions/patients'
+import { Alert } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { PatientTimeline } from '@/components/patients/PatientTimeline'
+import { GenerateDocumentButton } from '@/components/patients/GenerateDocumentButton'
+import { PatientActions } from '@/components/patients/PatientActions'
+import { EditPatientButton } from '@/components/patients/EditPatientButton'
+import { AddAppointmentButton } from '@/components/appointments/AddAppointmentButton'
+import { Calendar, FileText } from 'lucide-react'
 
 export default async function PatientDetailPage({
   params,
@@ -28,69 +37,91 @@ export default async function PatientDetailPage({
     notFound()
   }
 
+  // Fetch appointments for timeline
+  const { data: appointments } = await supabase
+    .from('appointments')
+    .select('id, appointment_date, status, chief_complaint, duration_minutes')
+    .eq('patient_id', params.id)
+    .order('appointment_date', { ascending: false })
+    .limit(20)
+
+  // Fetch documents for timeline
+  const { data: documents } = await supabase
+    .from('documents')
+    .select(`
+      id,
+      document_name,
+      created_at,
+      template:templates(name, category),
+      appointment:appointments(appointment_date)
+    `)
+    .eq('patient_id', params.id)
+    .order('created_at', { ascending: false })
+    .limit(20)
+
+  // Fetch active templates for document generation
+  const { data: templates } = await supabase
+    .from('templates')
+    .select('id, name, description, category, builder_version, is_active')
+    .eq('doctor_id', user.id)
+    .eq('is_active', true)
+    .order('name')
+
+  // Fetch all patients for appointment modal
+  const { data: allPatients } = await supabase
+    .from('patients')
+    .select('id, name')
+    .eq('doctor_id', user.id)
+    .eq('is_active', true)
+    .order('name')
+
   const age = patient.date_of_birth
     ? new Date().getFullYear() - new Date(patient.date_of_birth).getFullYear()
     : null
 
   const deleteAction = softDeletePatient.bind(null, patient.id)
   const restoreAction = restorePatient.bind(null, patient.id)
+  
+  const appointmentCount = appointments?.length || 0
+  const documentCount = documents?.length || 0
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard">
-            <h1 className="text-xl font-bold hover:text-primary transition-colors">
-              Arog Doctor Platform
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/patients" className="text-sm hover:text-primary">
-              Patients
-            </Link>
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <form action="/api/auth/logout" method="post">
-              <button className="text-sm text-primary hover:underline">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <Header userEmail={user.email} />
 
       <main className="container mx-auto flex-1 p-6">
-        <div className="max-w-4xl space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">{patient.name}</h2>
-              <p className="text-muted-foreground">Patient Details</p>
+              <div className="flex items-center gap-3 mt-2">
+                <p className="text-muted-foreground">Patient Details</p>
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {appointmentCount} {appointmentCount === 1 ? 'Appointment' : 'Appointments'}
+                </Badge>
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <FileText className="h-3 w-3" />
+                  {documentCount} {documentCount === 1 ? 'Document' : 'Documents'}
+                </Badge>
+              </div>
             </div>
             <div className="flex gap-2">
-              <Link href={`/patients/${patient.id}/edit`}>
-                <Button variant="outline">Edit</Button>
-              </Link>
-              {patient.is_active ? (
-                <form action={deleteAction}>
-                  <Button type="submit" variant="destructive">
-                    Deactivate
-                  </Button>
-                </form>
-              ) : (
-                <form action={restoreAction}>
-                  <Button type="submit">
-                    Restore
-                  </Button>
-                </form>
-              )}
+              <EditPatientButton patient={patient} />
+              <PatientActions
+                patientId={patient.id}
+                patientName={patient.name}
+                isActive={patient.is_active}
+                deleteAction={deleteAction}
+                restoreAction={restoreAction}
+              />
             </div>
           </div>
 
           {!patient.is_active && (
-            <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
-              <p className="text-sm text-yellow-800">
-                ⚠️ This patient record is inactive
-              </p>
-            </div>
+            <Alert variant="warning">
+              This patient record is inactive
+            </Alert>
           )}
 
           <div className="grid gap-6 md:grid-cols-2">
@@ -168,22 +199,26 @@ export default async function PatientDetailPage({
             </Card>
           </div>
 
-          <Card>
+          <PatientTimeline 
+            appointments={appointments || []} 
+            documents={documents || []} 
+          />
+
+          <Card className="border-0 shadow-md">
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-3">
-                <Link href={`/appointments/new?patientId=${patient.id}`}>
-                  <Button variant="outline" className="w-full">
-                    Schedule Appointment
-                  </Button>
-                </Link>
-                <Link href={`/documents/new?patientId=${patient.id}`}>
-                  <Button variant="outline" className="w-full">
-                    Generate Document
-                  </Button>
-                </Link>
+                <AddAppointmentButton 
+                  patients={allPatients || []}
+                  preSelectedPatientId={patient.id}
+                  variant="outline"
+                />
+                <GenerateDocumentButton 
+                  patientId={patient.id} 
+                  templates={templates || []} 
+                />
                 <Link href={`/documents?patientId=${patient.id}`}>
                   <Button variant="outline" className="w-full">
                     View All Documents

@@ -3,6 +3,9 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Header } from '@/components/layout/Header'
+import { Badge } from '@/components/ui/badge'
+import { Alert } from '@/components/ui/alert'
 import { Layers, FileText } from 'lucide-react'
 
 export default async function DocumentDetailPage({
@@ -40,43 +43,24 @@ export default async function DocumentDetailPage({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard">
-            <h1 className="text-xl font-bold hover:text-primary transition-colors">
-              Arog Doctor Platform
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/documents" className="text-sm hover:text-primary">
-              Documents
-            </Link>
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <form action="/api/auth/logout" method="post">
-              <button className="text-sm text-primary hover:underline">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <Header userEmail={user.email} />
 
       <main className="container mx-auto flex-1 p-6">
-        <div className="max-w-4xl space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h2 className="text-3xl font-bold tracking-tight">Document Details</h2>
                 {isBuilderV2 ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-cyan-100 text-cyan-700 rounded">
+                  <Badge variant="info" className="flex items-center gap-1">
                     <Layers className="w-3 h-3" />
-                    Builder V2
-                  </span>
+                    V2
+                  </Badge>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                  <Badge variant="secondary" className="flex items-center gap-1">
                     <FileText className="w-3 h-3" />
                     V1
-                  </span>
+                  </Badge>
                 )}
               </div>
               <p className="text-muted-foreground">
@@ -90,11 +74,9 @@ export default async function DocumentDetailPage({
             </div>
           </div>
 
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <p className="text-sm text-blue-800">
-              Documents are immutable and cannot be edited or deleted. This ensures the integrity of medical records.
-            </p>
-          </div>
+          <Alert variant="info">
+            Documents are immutable and cannot be edited or deleted. This ensures the integrity of medical records.
+          </Alert>
 
           <div className="grid gap-6 md:grid-cols-2">
             <Card>

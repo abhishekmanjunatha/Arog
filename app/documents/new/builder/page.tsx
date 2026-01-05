@@ -309,7 +309,10 @@ export default function NewBuilderDocumentPage() {
                 Create Document
               </h1>
               <p className="text-sm text-gray-500">
-                Fill out the form to generate a new document
+                {patient 
+                  ? `Creating document for ${patient.name}`
+                  : 'Fill out the form to generate a new document'
+                }
               </p>
             </div>
           </div>
@@ -358,7 +361,8 @@ export default function NewBuilderDocumentPage() {
                 <select
                   value={selectedPatientId}
                   onChange={(e) => handlePatientChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  disabled={!!searchParams.get('patientId')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="">Select patient</option>
                   {patients.map((p) => (

@@ -7,7 +7,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Header } from '@/components/layout/Header'
+import { AddTemplateButton } from '@/components/templates/AddTemplateButton'
 import { isBuilderV2Enabled } from '@/lib/feature-flags'
+import { EmptyState } from '@/components/ui/empty-state'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { Badge } from '@/components/ui/badge'
 import { Layers, FileText, Plus, ChevronDown } from 'lucide-react'
 import type { TemplateContent } from '@/types/template'
 import type { User } from '@supabase/supabase-js'
@@ -19,6 +23,7 @@ export default function TemplatesPage() {
   const [templates, setTemplates] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateMenu, setShowCreateMenu] = useState(false)
+  const [showV1Modal, setShowV1Modal] = useState(false)
 
   const builderEnabled = isBuilderV2Enabled()
   const categoryFilter = searchParams.get('category') || ''
@@ -164,10 +169,12 @@ export default function TemplatesPage() {
                             </div>
                             <span className="ml-auto text-xs px-2 py-0.5 bg-cyan-100 text-cyan-700 rounded">V2</span>
                           </Link>
-                          <Link 
-                            href="/templates/new"
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-t rounded-b-lg"
-                            onClick={() => setShowCreateMenu(false)}
+                          <div 
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-t rounded-b-lg cursor-pointer"
+                            onClick={() => {
+                              setShowCreateMenu(false)
+                              setShowV1Modal(true)
+                            }}
                           >
                             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                               <FileText className="w-5 h-5 text-gray-600" />
@@ -176,19 +183,14 @@ export default function TemplatesPage() {
                               <div className="font-medium text-gray-900">Variable Template</div>
                               <div className="text-xs text-gray-500">Classic text editor</div>
                             </div>
-                            <span className="ml-auto text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">V1</span>
-                          </Link>
+                            <Badge variant="secondary" className="ml-auto text-xs">V1</Badge>
+                          </div>
                         </div>
                       </>
                     )}
                   </>
                 ) : (
-                  <Link href="/templates/new">
-                    <Button size="lg" className="w-full sm:w-auto shadow-md">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Template
-                    </Button>
-                  </Link>
+                  <AddTemplateButton />
                 )}
               </div>
             </div>
@@ -258,27 +260,23 @@ export default function TemplatesPage() {
                       href={`/templates/${template.id}`}
                       className="block group"
                     >
-                      <Card className="card-hover border-0 shadow-md h-full">
+                      <Card className="border border-border/50 hover:border-primary/50 hover:shadow-lg transition-all duration-200 h-full">
                         <div className="p-6">
                           <div className="flex items-start justify-between mb-3">
-                            <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                            <h3 className="font-semibold text-lg group-hover:text-primary transition-colors line-clamp-1">
                               {template.name}
                             </h3>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-shrink-0 ml-2">
                               {isBuilderV2 ? (
-                                <span className="status-badge bg-cyan-100 text-cyan-700 flex items-center gap-1">
+                                <Badge variant="info" className="flex items-center gap-1">
                                   <Layers className="w-3 h-3" />
                                   V2
-                                </span>
+                                </Badge>
                               ) : (
-                                <span className="status-badge bg-gray-100 text-gray-600">
-                                  V1
-                                </span>
+                                <Badge variant="secondary">V1</Badge>
                               )}
                               {!template.is_active && (
-                                <span className="status-badge bg-gray-100 text-gray-600">
-                                  Inactive
-                                </span>
+                                <StatusBadge status="inactive" />
                               )}
                             </div>
                           </div>
@@ -289,11 +287,11 @@ export default function TemplatesPage() {
                             </p>
                           )}
 
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="status-badge bg-primary/10 text-primary">
+                          <div className="flex items-center justify-between text-sm pt-4 border-t">
+                            <Badge variant="outline" className="capitalize">
                               {template.category || 'uncategorized'}
-                            </span>
-                            <span className="text-muted-foreground">
+                            </Badge>
+                            <span className="text-muted-foreground text-xs">
                               {isBuilderV2 
                                 ? `${elementCount} element${elementCount !== 1 ? 's' : ''}`
                                 : `${variableCount} variable${variableCount !== 1 ? 's' : ''}`
@@ -309,18 +307,27 @@ export default function TemplatesPage() {
             ) : (
               <Card className="border-0 shadow-md">
                 <CardContent className="flex flex-col items-center justify-center py-16">
-                  <div className="text-6xl mb-4">📝</div>
-                  <h3 className="text-xl font-semibold mb-2">No templates found</h3>
-                  <p className="text-muted-foreground mb-6">Get started by creating your first template</p>
-                  <Link href="/templates/new">
-                    <Button size="lg">Create First Template</Button>
-                  </Link>
+                  <EmptyState
+                    icon={FileText}
+                    title="No templates found"
+                    description="Get started by creating your first template"
+                    action={{
+                      label: 'Create First Template',
+                      onClick: () => setShowV1Modal(true)
+                    }}
+                  />
                 </CardContent>
               </Card>
             )}
           </div>
         </div>
       </main>
+
+      {/* V1 Template Modal */}
+      <AddTemplateButton 
+        isModalOpen={showV1Modal} 
+        onClose={() => setShowV1Modal(false)} 
+      />
     </div>
   )
 }

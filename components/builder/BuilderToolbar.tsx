@@ -75,95 +75,98 @@ export function BuilderToolbar({ onSave, templateName }: BuilderToolbarProps) {
 
   return (
     <>
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        {/* Left side - Title and element count */}
-        <div className="flex items-center gap-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {templateName || 'Form Builder'}
-            </h2>
-            <p className="text-sm text-gray-500">
-              {elementCount} {elementCount === 1 ? 'element' : 'elements'}
-            </p>
+      <div className="bg-white border-b border-gray-200 px-3 md:px-4 py-2 md:py-3">
+        {/* Mobile: Single row with condensed layout */}
+        <div className="flex items-center justify-between gap-2">
+          {/* Left side - Title and element count */}
+          <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+            <div className="min-w-0">
+              <h2 className="text-sm md:text-lg font-semibold text-gray-900 truncate">
+                {templateName || 'Form Builder'}
+              </h2>
+              <p className="text-xs md:text-sm text-gray-500">
+                {elementCount} {elementCount === 1 ? 'element' : 'elements'}
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Center - Actions */}
-        <div className="flex items-center gap-2">
-          {/* Undo */}
-          <button
-            onClick={undo}
-            disabled={!canUndo}
-            className={`p-2 rounded-lg transition-colors ${
-              canUndo 
-                ? 'hover:bg-gray-100 text-gray-700' 
-                : 'text-gray-300 cursor-not-allowed'
-            }`}
-            title="Undo (Ctrl+Z)"
-          >
-            <Undo2 className="w-5 h-5" />
-          </button>
-
-          {/* Redo */}
-          <button
-            onClick={redo}
-            disabled={!canRedo}
-            className={`p-2 rounded-lg transition-colors ${
-              canRedo 
-                ? 'hover:bg-gray-100 text-gray-700' 
-                : 'text-gray-300 cursor-not-allowed'
-            }`}
-            title="Redo (Ctrl+Y)"
-          >
-            <Redo2 className="w-5 h-5" />
-          </button>
-
-          <div className="w-px h-6 bg-gray-300 mx-2" />
-
-          {/* Preview */}
-          <button
-            onClick={() => setShowPreview(true)}
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
-            title="Preview Form"
-          >
-            <Eye className="w-5 h-5" />
-          </button>
-
-          {/* View JSON */}
-          <button
-            onClick={() => setShowJson(true)}
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
-            title="View JSON Schema"
-          >
-            <FileJson className="w-5 h-5" />
-          </button>
-
-          {/* Clear All */}
-          <button
-            onClick={handleClear}
-            disabled={elementCount === 0}
-            className={`p-2 rounded-lg transition-colors ${
-              elementCount > 0 
-                ? 'hover:bg-red-50 text-red-600' 
-                : 'text-gray-300 cursor-not-allowed'
-            }`}
-            title="Clear All Elements"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Right side - Save button */}
-        <div className="flex items-center gap-2">
-          {onSave && (
+          {/* Center - Actions (Hidden on mobile, visible on tablet+) */}
+          <div className="hidden md:flex items-center gap-2">
+            {/* Undo */}
             <button
-              onClick={handleSave}
-              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+              onClick={undo}
+              disabled={!canUndo}
+              className={`p-2 rounded-lg transition-colors ${
+                canUndo 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'text-gray-300 cursor-not-allowed'
+              }`}
+              title="Undo (Ctrl+Z)"
             >
-              <Save className="w-4 h-4" />
-              Save Template
+              <Undo2 className="w-5 h-5" />
             </button>
-          )}
+
+            {/* Redo */}
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              className={`p-2 rounded-lg transition-colors ${
+                canRedo 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'text-gray-300 cursor-not-allowed'
+              }`}
+              title="Redo (Ctrl+Y)"
+            >
+              <Redo2 className="w-5 h-5" />
+            </button>
+
+            <div className="w-px h-6 bg-gray-300 mx-2" />
+
+            {/* Preview */}
+            <button
+              onClick={() => setShowPreview(true)}
+              className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
+              title="Preview Form"
+            >
+              <Eye className="w-5 h-5" />
+            </button>
+
+            {/* View JSON */}
+            <button
+              onClick={() => setShowJson(true)}
+              className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
+              title="View JSON Schema"
+            >
+              <FileJson className="w-5 h-5" />
+            </button>
+
+            {/* Clear All */}
+            <button
+              onClick={handleClear}
+              disabled={elementCount === 0}
+              className={`p-2 rounded-lg transition-colors ${
+                elementCount > 0 
+                  ? 'hover:bg-red-50 text-red-600' 
+                  : 'text-gray-300 cursor-not-allowed'
+              }`}
+              title="Clear All Elements"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Right side - Save button */}
+          <div className="flex items-center gap-2">
+            {onSave && (
+              <button
+                onClick={handleSave}
+                className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover transition-colors text-sm md:text-base font-medium min-h-[44px]"
+              >
+                <Save className="w-4 h-4" />
+                <span className="hidden sm:inline">Save</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

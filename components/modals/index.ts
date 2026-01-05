@@ -1,0 +1,5 @@
+export { Modal } from './Modal'
+export { ConfirmationModal } from './ConfirmationModal'
+export { PatientFormModal } from './PatientFormModal'
+export { AppointmentFormModal } from './AppointmentFormModal'
+export { TemplateFormModal } from './TemplateFormModal'

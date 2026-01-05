@@ -3,10 +3,15 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Header } from '@/components/layout/Header'
+import { Badge } from '@/components/ui/badge'
+import { Alert } from '@/components/ui/alert'
 import { toggleTemplateActive } from '@/app/actions/templates'
 import { Layers, FileText } from 'lucide-react'
 import type { TemplateContent } from '@/types/template'
 import { MigrateButton } from './MigrateButton'
+import { TemplateActions } from '@/components/templates/TemplateActions'
+import { EditTemplateButton } from '@/components/templates/EditTemplateButton'
 
 export default async function TemplateDetailPage({
   params,
@@ -38,43 +43,24 @@ export default async function TemplateDetailPage({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard">
-            <h1 className="text-xl font-bold hover:text-primary transition-colors">
-              Arog Doctor Platform
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/templates" className="text-sm hover:text-primary">
-              Templates
-            </Link>
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <form action="/api/auth/logout" method="post">
-              <button className="text-sm text-primary hover:underline">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <Header userEmail={user.email} />
 
       <main className="container mx-auto flex-1 p-6">
-        <div className="max-w-4xl space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h2 className="text-3xl font-bold tracking-tight">{template.name}</h2>
                 {isBuilderV2 ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-cyan-100 text-cyan-700 rounded">
+                  <Badge variant="info" className="flex items-center gap-1">
                     <Layers className="w-3 h-3" />
-                    Builder V2
-                  </span>
+                    V2
+                  </Badge>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                  <Badge variant="secondary" className="flex items-center gap-1">
                     <FileText className="w-3 h-3" />
                     V1
-                  </span>
+                  </Badge>
                 )}
               </div>
               <p className="text-muted-foreground">
@@ -85,31 +71,27 @@ export default async function TemplateDetailPage({
               {!isBuilderV2 && (
                 <MigrateButton templateId={template.id} />
               )}
-              <Link href={isBuilderV2 ? `/templates/${template.id}/edit/builder` : `/templates/${template.id}/edit`}>
-                <Button variant="outline">Edit</Button>
-              </Link>
-              {template.is_active ? (
-                <form action={deactivateAction}>
-                  <Button type="submit" variant="destructive">
-                    Deactivate
-                  </Button>
-                </form>
+              {isBuilderV2 ? (
+                <Link href={`/templates/${template.id}/edit/builder`}>
+                  <Button variant="outline">Edit</Button>
+                </Link>
               ) : (
-                <form action={activateAction}>
-                  <Button type="submit" variant="default">
-                    Activate
-                  </Button>
-                </form>
+                <EditTemplateButton template={template} />
               )}
+              <TemplateActions
+                templateId={template.id}
+                templateName={template.name}
+                isActive={template.is_active}
+                deactivateAction={deactivateAction}
+                activateAction={activateAction}
+              />
             </div>
           </div>
 
           {!template.is_active && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-              <p className="text-sm text-red-800">
-                This template is currently inactive and cannot be used for document generation.
-              </p>
-            </div>
+            <Alert variant="warning">
+              This template is currently inactive and cannot be used for document generation.
+            </Alert>
           )}
 
           <div className="grid gap-6 md:grid-cols-2">
