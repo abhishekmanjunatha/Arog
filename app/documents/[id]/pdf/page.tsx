@@ -37,10 +37,29 @@ export default async function DocumentPDFPage({
   if (documentData?.builder_version === 2) {
     const elements = documentData?.template_schema?.elements || []
     const formData = documentData?.form_data || {}
-    const patientName = documentData?.patient_info?.name || document.patient.name
-    const doctorName = documentData?.doctor_info?.name || ''
-    const clinicName = documentData?.doctor_info?.clinic_name || ''
+    const patientInfo = documentData?.patient_info || {}
+    const doctorInfo = documentData?.doctor_info || {}
+    const patientName = patientInfo.name || document.patient.name
+    const doctorName = doctorInfo.name || ''
+    const clinicName = doctorInfo.clinic_name || ''
     const createdAt = documentData?.created_at || document.created_at
+
+    // Build prefillData for patient and doctor info elements
+    const prefillData = {
+      patient: {
+        name: patientInfo.name,
+        email: patientInfo.email,
+        phone: patientInfo.phone,
+        address: patientInfo.address,
+        age: patientInfo.age,
+        gender: patientInfo.gender,
+        blood_group: patientInfo.blood_group,
+      },
+      doctor: {
+        name: doctorInfo.name,
+        clinic_name: doctorInfo.clinic_name,
+      }
+    }
 
     return (
       <BuilderPDFViewer 
@@ -51,6 +70,7 @@ export default async function DocumentPDFPage({
         elements={elements}
         formData={formData}
         createdAt={createdAt}
+        prefillData={prefillData}
       />
     )
   }

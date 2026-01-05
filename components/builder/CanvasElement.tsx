@@ -28,7 +28,14 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  UserCircle,
+  Droplet,
+  Building2
 } from 'lucide-react';
 
 interface CanvasElementProps {
@@ -48,9 +55,17 @@ const ELEMENT_ICONS: Record<string, React.ReactNode> = {
   calculated: <Calculator className="w-4 h-4" />,
   divider: <Minus className="w-4 h-4" />,
   header: <Heading className="w-4 h-4" />,
+  documentHeader: <Building2 className="w-4 h-4" />,
   image: <Image className="w-4 h-4" />,
   footer: <FileText className="w-4 h-4" />,
   medicalHistory: <ClipboardList className="w-4 h-4" />,
+  patientName: <User className="w-4 h-4" />,
+  patientEmail: <Mail className="w-4 h-4" />,
+  patientPhone: <Phone className="w-4 h-4" />,
+  patientAddress: <MapPin className="w-4 h-4" />,
+  patientAge: <Calendar className="w-4 h-4" />,
+  patientGender: <UserCircle className="w-4 h-4" />,
+  patientBloodGroup: <Droplet className="w-4 h-4" />,
 };
 
 // Width steps for left/right controls
@@ -259,6 +274,9 @@ export function CanvasElement({ element, index, isSelected, totalElements }: Can
             <h3 className={`font-bold text-gray-900 ${
               element.properties.fontSize === 'large' ? 'text-xl' :
               element.properties.fontSize === 'medium' ? 'text-lg' : 'text-base'
+            } ${
+              element.properties.alignment === 'center' ? 'text-center' :
+              element.properties.alignment === 'right' ? 'text-right' : 'text-left'
             }`}>
               {element.label || 'Header Text'}
             </h3>
@@ -336,8 +354,75 @@ export function CanvasElement({ element, index, isSelected, totalElements }: Can
                   <span className="ml-2 text-gray-500 text-sm">Image placeholder</span>
                 </div>
               ) : element.type === 'footer' ? (
-                <div className="p-2 bg-gray-50 border-t border-gray-200 text-center text-sm text-gray-500">
+                <div className={`p-2 bg-gray-50 border-t border-gray-200 text-sm text-gray-500 ${
+                  element.properties.alignment === 'center' ? 'text-center' :
+                  element.properties.alignment === 'right' ? 'text-right' : 'text-left'
+                }`}>
                   {element.properties.content || 'Footer content'}
+                </div>
+              ) : element.type === 'documentHeader' ? (
+                <div 
+                  className="p-4 rounded-lg border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50"
+                  style={{
+                    backgroundColor: element.properties.headerBackgroundColor || '#f0f9ff',
+                    borderBottomWidth: element.properties.showBottomBorder ? '2px' : '0',
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-12 h-12 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 text-sm">Dr. [Name]</p>
+                      <p className="text-xs text-gray-600">Designation • Qualifications</p>
+                      <div className="flex gap-2 mt-1">
+                        <span className="text-xs text-gray-500">📞 Phone</span>
+                        <span className="text-xs text-gray-500">✉️ Email</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-2 text-center">Document Header (Auto-filled)</p>
+                </div>
+              ) : element.type === 'patientName' || element.type === 'patientEmail' || 
+                  element.type === 'patientPhone' || element.type === 'patientAddress' || 
+                  element.type === 'patientAge' || element.type === 'patientGender' || element.type === 'patientBloodGroup' ? (
+                <div className={`px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-50/30 border border-blue-200/50 rounded-lg ${
+                  element.properties.alignment === 'center' ? 'text-center' :
+                  element.properties.alignment === 'right' ? 'text-right' : 'text-left'
+                }`}>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    {ELEMENT_ICONS[element.type]}
+                    <div className="flex-1">
+                      {element.properties.showLabel && (
+                        <p className={`text-xs text-gray-500 mb-1 ${
+                          element.properties.labelPosition === 'inline' ? 'inline mr-2' : 'block'
+                        }`}>
+                          {element.label}
+                        </p>
+                      )}
+                      <p className={`${
+                        element.properties.fontWeight === 'bold' ? 'font-bold' :
+                        element.properties.fontWeight === 'semibold' ? 'font-semibold' :
+                        element.properties.fontWeight === 'medium' ? 'font-medium' : 'font-normal'
+                      } ${
+                        element.properties.fontSize === 'large' ? 'text-lg' :
+                        element.properties.fontSize === 'small' ? 'text-sm' : 'text-base'
+                      } ${
+                        element.properties.textTransform === 'uppercase' ? 'uppercase' :
+                        element.properties.textTransform === 'lowercase' ? 'lowercase' :
+                        element.properties.textTransform === 'capitalize' ? 'capitalize' : ''
+                      } text-gray-800`}>
+                        {element.type === 'patientName' ? '[Patient Name]' :
+                         element.type === 'patientEmail' ? '[patient@email.com]' :
+                         element.type === 'patientPhone' ? '[+91 1234567890]' :
+                         element.type === 'patientAddress' ? '[Patient Address]' :
+                         element.type === 'patientAge' ? '[Age]' :
+                         element.type === 'patientGender' ? '[Gender]' :
+                         '[Blood Group]'}
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">Auto-filled from patient data</p>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <input

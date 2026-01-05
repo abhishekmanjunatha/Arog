@@ -17,10 +17,12 @@ import {
   DateElement,
   CalculatedElement,
   HeaderElement,
+  DocumentHeaderElement,
   DividerElement,
   ImageElement,
   FooterElement,
   MedicalHistoryElement,
+  PatientInfoElement,
 } from './elements';
 import { applyPrefillToForm } from '@/lib/prefill-engine.client';
 import { validateSchema } from '@/lib/builder-utils';
@@ -81,8 +83,10 @@ export function FormRenderer({
     const newErrors: Record<string, string> = {};
 
     for (const element of schema.elements) {
-      // Skip non-input elements
-      if (['divider', 'header', 'calculated'].includes(element.type)) {
+      // Skip non-input elements and patient info elements (read-only)
+      if (['divider', 'header', 'documentHeader', 'calculated', 'image', 'footer',
+           'patientName', 'patientEmail', 'patientPhone', 
+           'patientAddress', 'patientAge', 'patientGender', 'patientBloodGroup'].includes(element.type)) {
         continue;
       }
 
@@ -154,6 +158,11 @@ export function FormRenderer({
   };
 
   const renderElement = (element: BuilderElement) => {
+    // Skip documentHeader and footer in form view - they only appear in PDF
+    if (element.type === 'documentHeader' || element.type === 'footer') {
+      return null;
+    }
+
     const commonProps = {
       element,
       prefillData,
@@ -228,6 +237,9 @@ export function FormRenderer({
       case 'header':
         return <HeaderElement element={element} />;
 
+      case 'documentHeader':
+        return <DocumentHeaderElement element={element} prefillData={prefillData} />;
+
       case 'divider':
         return <DividerElement element={element} />;
 
@@ -243,6 +255,21 @@ export function FormRenderer({
             {...commonProps}
             value={formData[element.name] as string}
             onChange={(value) => handleFieldChange(element.name, value)}
+          />
+        );
+
+      case 'patientName':
+      case 'patientEmail':
+      case 'patientPhone':
+      case 'patientAddress':
+      case 'patientAge':
+      case 'patientGender':
+      case 'patientBloodGroup':
+        return (
+          <PatientInfoElement
+            element={element}
+            prefillData={prefillData}
+            disabled={disabled}
           />
         );
 

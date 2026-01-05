@@ -74,6 +74,18 @@ export async function createBuilderDocument(data: {
     .eq('id', user.id)
     .single()
 
+  // Calculate age from date of birth
+  let patientAge: number | null = null;
+  if (patient.date_of_birth) {
+    const birthDate = new Date(patient.date_of_birth);
+    const today = new Date();
+    patientAge = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      patientAge--;
+    }
+  }
+
   // Create the document
   const newDocument: DocumentInsert = {
     doctor_id: user.id,
@@ -93,6 +105,9 @@ export async function createBuilderDocument(data: {
         email: patient.email,
         date_of_birth: patient.date_of_birth,
         gender: patient.gender,
+        age: patientAge,
+        blood_group: patient.blood_group,
+        address: patient.address,
       },
       doctor_info: doctor ? {
         id: doctor.id,

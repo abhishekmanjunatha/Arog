@@ -34,6 +34,8 @@ interface PatientData {
   email: string | null;
   date_of_birth: string | null;
   gender: string | null;
+  blood_group: string | null;
+  address: string | null;
 }
 
 interface AppointmentData {
@@ -106,7 +108,7 @@ export default function NewBuilderDocumentPage() {
       // Fetch patients
       const { data: patientData } = await supabase
         .from('patients')
-        .select('id, name, phone, email, date_of_birth, gender')
+        .select('id, name, phone, email, date_of_birth, gender, blood_group, address')
         .eq('doctor_id', user.id)
         .eq('is_active', true)
         .order('name');
@@ -184,6 +186,19 @@ export default function NewBuilderDocumentPage() {
     setAppointment(appt || null);
   };
 
+  // Calculate age from date of birth
+  const calculateAge = (dateOfBirth: string | null): number | undefined => {
+    if (!dateOfBirth) return undefined;
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   // Build prefill data
   const buildPrefillData = (): PrefillData => {
     return {
@@ -194,11 +209,15 @@ export default function NewBuilderDocumentPage() {
         email: patient.email || undefined,
         date_of_birth: patient.date_of_birth || undefined,
         gender: patient.gender || undefined,
+        blood_group: patient.blood_group || undefined,
+        address: patient.address || undefined,
+        age: calculateAge(patient.date_of_birth),
       } : undefined,
       doctor: doctor ? {
         id: doctor.id,
         name: doctor.name || '',
         clinic: doctor.clinic_name || undefined,
+        clinic_name: doctor.clinic_name || undefined,
       } : undefined,
       appointment: appointment ? {
         id: appointment.id,

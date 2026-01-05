@@ -11,9 +11,18 @@ export type ElementType =
   | 'calculated'
   | 'divider'
   | 'header'
+  | 'documentHeader'
   | 'image'
   | 'footer'
   | 'medicalHistory'
+  // Patient Information Elements (display-only, auto-filled)
+  | 'patientName'
+  | 'patientEmail'
+  | 'patientPhone'
+  | 'patientAddress'
+  | 'patientAge'
+  | 'patientGender'
+  | 'patientBloodGroup'
 
 export type PrefillSource = 'patient' | 'doctor' | 'appointment' | 'system'
 
@@ -99,6 +108,33 @@ export interface ElementProperties {
   maxItems?: number
   itemPlaceholder?: string
   allowFormatting?: boolean
+  // Patient Info Element properties
+  showLabel?: boolean
+  labelPosition?: 'top' | 'left' | 'inline'
+  fontWeight?: 'normal' | 'medium' | 'semibold' | 'bold'
+  textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
+  // Document Header properties
+  logoSrc?: string
+  logoWidth?: number
+  logoHeight?: number
+  logoPosition?: 'left' | 'center' | 'right'
+  doctorName?: string
+  designation?: string
+  education?: string
+  phone?: string
+  email?: string
+  headerLayout?: 'logo-left' | 'logo-center' | 'logo-right' | 'two-column'
+  showDoctorName?: boolean
+  showDesignation?: boolean
+  showEducation?: boolean
+  showPhone?: boolean
+  showEmail?: boolean
+  headerBackgroundColor?: string
+  headerTextColor?: string
+  headerPadding?: number
+  showBottomBorder?: boolean
+  // Date element properties
+  useCurrentDate?: boolean  // For date fields - auto-populate with current date
 }
 
 export interface BuilderElement {
@@ -135,26 +171,30 @@ export interface TemplateWithBuilder {
 // Prefill data structure
 export interface PrefillData {
   patient?: {
-    id: string
-    name: string
-    phone: string
+    id?: string
+    name?: string
+    phone?: string
     email?: string
     date_of_birth?: string
     gender?: string
+    blood_group?: string
+    address?: string
+    age?: number
   }
   doctor?: {
-    id: string
-    name: string
+    id?: string
+    name?: string
     clinic?: string
+    clinic_name?: string
   }
   appointment?: {
-    id: string
-    appointment_date: string
+    id?: string
+    appointment_date?: string
     appointment_time?: string
   }
   system?: {
-    current_date: string
-    current_time: string
+    current_date?: string
+    current_time?: string
     place?: string
   }
 }

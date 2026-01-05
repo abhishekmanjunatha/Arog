@@ -67,6 +67,11 @@ export function getPrefillValue(
 
   const { source, field } = config;
   
+  // Guard against undefined field
+  if (!field) {
+    return undefined;
+  }
+  
   switch (source) {
     case 'patient':
       return prefillData.patient?.[field.replace('patient_', '') as keyof typeof prefillData.patient];
@@ -92,7 +97,13 @@ export function applyPrefillToForm(
   const values: Record<string, any> = {};
   
   for (const element of elements) {
-    if (element.prefill?.enabled) {
+    // Handle date elements with useCurrentDate option
+    if (element.type === 'date' && element.properties?.useCurrentDate) {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      values[element.name] = today;
+    }
+    // Handle prefill configuration
+    else if (element.prefill?.enabled) {
       const value = getPrefillValue(prefillData, element.prefill);
       if (value !== undefined) {
         values[element.name] = value;

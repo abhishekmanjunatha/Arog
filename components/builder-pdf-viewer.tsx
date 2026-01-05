@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import type { BuilderElement } from '@/types/builder'
+import type { BuilderElement, PrefillData } from '@/types/builder'
 
 interface BuilderPDFViewerProps {
   title: string
@@ -11,6 +11,7 @@ interface BuilderPDFViewerProps {
   elements: BuilderElement[]
   formData: Record<string, any>
   createdAt: string
+  prefillData?: PrefillData
 }
 
 export function BuilderPDFViewer(props: BuilderPDFViewerProps) {

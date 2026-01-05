@@ -24,9 +24,17 @@ export const ELEMENT_TYPES: ElementType[] = [
   'calculated',
   'divider',
   'header',
+  'documentHeader',
   'image',
   'footer',
-  'medicalHistory'
+  'medicalHistory',
+  'patientName',
+  'patientEmail',
+  'patientPhone',
+  'patientAddress',
+  'patientAge',
+  'patientGender',
+  'patientBloodGroup'
 ];
 
 /**
@@ -42,9 +50,17 @@ export const ELEMENT_TYPE_LABELS: Record<ElementType, string> = {
   calculated: 'Calculated Field',
   divider: 'Divider',
   header: 'Header',
+  documentHeader: 'Document Header',
   image: 'Image',
   footer: 'Footer',
-  medicalHistory: 'Medical History'
+  medicalHistory: 'Medical History',
+  patientName: 'Patient Name',
+  patientEmail: 'Patient Email',
+  patientPhone: 'Patient Phone',
+  patientAddress: 'Patient Address',
+  patientAge: 'Patient Age',
+  patientGender: 'Patient Gender',
+  patientBloodGroup: 'Blood Group'
 };
 
 /**
@@ -60,9 +76,17 @@ export const ELEMENT_TYPE_ICONS: Record<ElementType, string> = {
   calculated: '🧮',
   divider: '➖',
   header: '📌',
+  documentHeader: '🏥',
   image: '🖼️',
   footer: '📑',
-  medicalHistory: '🏥'
+  medicalHistory: '🏥',
+  patientName: '👤',
+  patientEmail: '📧',
+  patientPhone: '📞',
+  patientAddress: '📍',
+  patientAge: '🎂',
+  patientGender: '⚧',
+  patientBloodGroup: '🩸'
 };
 
 /**
@@ -131,6 +155,25 @@ export function createDefaultElement(type: ElementType, existingNames: string[] 
       baseElement.properties.fontSize = 'large';
       baseElement.properties.alignment = 'left';
       break;
+    case 'documentHeader':
+      baseElement.label = 'Document Header';
+      baseElement.name = uniqueName || 'document_header';
+      baseElement.properties.logoPosition = 'left';
+      baseElement.properties.logoWidth = 80;
+      baseElement.properties.logoHeight = 80;
+      baseElement.properties.headerLayout = 'logo-left';
+      baseElement.properties.showDoctorName = true;
+      baseElement.properties.showDesignation = true;
+      baseElement.properties.showEducation = true;
+      baseElement.properties.showPhone = true;
+      baseElement.properties.showEmail = true;
+      baseElement.properties.alignment = 'left';
+      baseElement.properties.fontSize = 'medium';
+      baseElement.properties.headerBackgroundColor = '#ffffff';
+      baseElement.properties.headerTextColor = '#1f2937';
+      baseElement.properties.headerPadding = 16;
+      baseElement.properties.showBottomBorder = true;
+      break;
     case 'calculated':
       baseElement.properties.calculation = 'bmi';
       break;
@@ -157,6 +200,70 @@ export function createDefaultElement(type: ElementType, existingNames: string[] 
       baseElement.properties.placeholder = 'Enter medical history (use - for bullets, numbers for lists)';
       baseElement.properties.allowFormatting = true;
       baseElement.label = 'Medical History';
+      break;
+    // Patient Information Elements (display-only, auto-filled)
+    case 'patientName':
+      baseElement.label = 'Patient Name';
+      baseElement.name = uniqueName || 'patient_name_display';
+      baseElement.properties.showLabel = true;
+      baseElement.properties.labelPosition = 'top';
+      baseElement.properties.fontWeight = 'semibold';
+      baseElement.properties.fontSize = 'medium';
+      baseElement.properties.alignment = 'left';
+      break;
+    case 'patientEmail':
+      baseElement.label = 'Email';
+      baseElement.name = uniqueName || 'patient_email_display';
+      baseElement.properties.showLabel = true;
+      baseElement.properties.labelPosition = 'top';
+      baseElement.properties.fontWeight = 'normal';
+      baseElement.properties.fontSize = 'medium';
+      baseElement.properties.alignment = 'left';
+      break;
+    case 'patientPhone':
+      baseElement.label = 'Phone Number';
+      baseElement.name = uniqueName || 'patient_phone_display';
+      baseElement.properties.showLabel = true;
+      baseElement.properties.labelPosition = 'top';
+      baseElement.properties.fontWeight = 'normal';
+      baseElement.properties.fontSize = 'medium';
+      baseElement.properties.alignment = 'left';
+      break;
+    case 'patientAddress':
+      baseElement.label = 'Address';
+      baseElement.name = uniqueName || 'patient_address_display';
+      baseElement.properties.showLabel = true;
+      baseElement.properties.labelPosition = 'top';
+      baseElement.properties.fontWeight = 'normal';
+      baseElement.properties.fontSize = 'medium';
+      baseElement.properties.alignment = 'left';
+      break;
+    case 'patientAge':
+      baseElement.label = 'Age';
+      baseElement.name = uniqueName || 'patient_age_display';
+      baseElement.properties.showLabel = true;
+      baseElement.properties.labelPosition = 'top';
+      baseElement.properties.fontWeight = 'normal';
+      baseElement.properties.fontSize = 'medium';
+      baseElement.properties.alignment = 'left';
+      break;
+    case 'patientGender':
+      baseElement.label = 'Gender';
+      baseElement.name = uniqueName || 'patient_gender_display';
+      baseElement.properties.showLabel = true;
+      baseElement.properties.labelPosition = 'top';
+      baseElement.properties.fontWeight = 'normal';
+      baseElement.properties.fontSize = 'medium';
+      baseElement.properties.alignment = 'left';
+      break;
+    case 'patientBloodGroup':
+      baseElement.label = 'Blood Group';
+      baseElement.name = uniqueName || 'patient_blood_group_display';
+      baseElement.properties.showLabel = true;
+      baseElement.properties.labelPosition = 'top';
+      baseElement.properties.fontWeight = 'normal';
+      baseElement.properties.fontSize = 'medium';
+      baseElement.properties.alignment = 'left';
       break;
     default:
       break;
@@ -347,6 +454,11 @@ export function isInputElement(type: ElementType): boolean {
  * Check if an element can be prefilled
  */
 export function canBePrefilled(type: ElementType): boolean {
+  // Patient info elements auto-fill directly from patient data, not through prefill engine
+  const patientInfoTypes = ['patientName', 'patientEmail', 'patientPhone', 'patientAddress', 'patientAge', 'patientGender', 'patientBloodGroup'];
+  if (patientInfoTypes.includes(type)) {
+    return false;
+  }
   return ['text', 'number', 'date', 'dropdown'].includes(type);
 }
 
@@ -354,6 +466,11 @@ export function canBePrefilled(type: ElementType): boolean {
  * Check if an element can be required
  */
 export function canBeRequired(type: ElementType): boolean {
+  // Patient info elements are auto-filled, so they can't be marked as required
+  const patientInfoTypes = ['patientName', 'patientEmail', 'patientPhone', 'patientAddress', 'patientAge', 'patientGender', 'patientBloodGroup'];
+  if (patientInfoTypes.includes(type)) {
+    return false;
+  }
   return isInputElement(type) && type !== 'calculated';
 }
 

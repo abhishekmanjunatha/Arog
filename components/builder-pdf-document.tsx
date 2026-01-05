@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
-import type { BuilderElement } from '@/types/builder'
+import type { BuilderElement, PrefillData } from '@/types/builder'
 
 // Define styles for PDF
 const styles = StyleSheet.create({
@@ -11,6 +11,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Helvetica',
     lineHeight: 1.5,
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
   },
   header: {
     marginBottom: 20,
@@ -138,6 +141,58 @@ const styles = StyleSheet.create({
     color: '#111827',
     flex: 1,
   },
+  // Patient Info styles
+  patientInfoContainer: {
+    marginVertical: 6,
+    padding: 8,
+    backgroundColor: '#eff6ff',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  patientInfoLabel: {
+    fontSize: 9,
+    color: '#6b7280',
+    marginBottom: 3,
+  },
+  patientInfoValue: {
+    fontSize: 12,
+    color: '#1f2937',
+  },
+  // Document Header styles
+  documentHeader: {
+    marginBottom: 16,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  documentHeaderLogo: {
+    marginRight: 16,
+  },
+  documentHeaderInfo: {
+    flex: 1,
+  },
+  documentHeaderName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  documentHeaderDesignation: {
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  documentHeaderEducation: {
+    fontSize: 10,
+    marginBottom: 6,
+  },
+  documentHeaderContact: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  documentHeaderContactText: {
+    fontSize: 10,
+    marginRight: 20,
+  },
 })
 
 interface BuilderPDFDocumentProps {
@@ -148,6 +203,7 @@ interface BuilderPDFDocumentProps {
   elements: BuilderElement[]
   formData: Record<string, any>
   createdAt: string
+  prefillData?: PrefillData
 }
 
 export function BuilderPDFDocument({ 
@@ -158,7 +214,34 @@ export function BuilderPDFDocument({
   elements, 
   formData,
   createdAt,
+  prefillData,
 }: BuilderPDFDocumentProps) {
+
+  // Get patient info value for patient info elements
+  const getPatientInfoValue = (element: BuilderElement): string => {
+    if (!prefillData?.patient) {
+      return '—';
+    }
+    const patient = prefillData.patient;
+    switch (element.type) {
+      case 'patientName':
+        return patient.name || '—';
+      case 'patientEmail':
+        return patient.email || '—';
+      case 'patientPhone':
+        return patient.phone || '—';
+      case 'patientAddress':
+        return patient.address || '—';
+      case 'patientAge':
+        return patient.age ? `${patient.age} years` : '—';
+      case 'patientGender':
+        return patient.gender || '—';
+      case 'patientBloodGroup':
+        return patient.blood_group || '—';
+      default:
+        return '—';
+    }
+  };
 
   const renderFieldValue = (element: BuilderElement): string => {
     const value = formData[element.name]
@@ -226,8 +309,11 @@ export function BuilderPDFDocument({
     
     // Handle header - full width
     if (element.type === 'header') {
+      const alignment = element.properties.alignment || 'left'
+      const fontSize = element.properties.fontSize === 'large' ? 16 : 
+                       element.properties.fontSize === 'small' ? 12 : 14
       return (
-        <Text style={[styles.sectionHeader, { width: widthPercent }]}>
+        <Text style={[styles.sectionHeader, { width: widthPercent, textAlign: alignment, fontSize }]}>
           {element.label}
         </Text>
       )
@@ -259,6 +345,88 @@ export function BuilderPDFDocument({
           )}
         </View>
       )
+    }
+
+    // Handle document header
+    if (element.type === 'documentHeader') {
+      // Use prefillData.doctor as fallback for doctor info
+      const doctorFromPrefill = prefillData?.doctor;
+      const doctorNameValue = element.properties.doctorName || doctorFromPrefill?.name || doctorName || 'Dr. [Name]';
+      const designation = element.properties.designation || '';
+      const education = element.properties.education || '';
+      const phone = element.properties.phone || '';
+      const email = element.properties.email || '';
+      const logoSrc = element.properties.logoSrc;
+      const logoWidth = element.properties.logoWidth || 60;
+      const logoHeight = element.properties.logoHeight || 60;
+      const showDoctorName = element.properties.showDoctorName !== false;
+      const showDesignation = element.properties.showDesignation !== false;
+      const showEducation = element.properties.showEducation !== false;
+      const showPhone = element.properties.showPhone !== false;
+      const showEmail = element.properties.showEmail !== false;
+      const backgroundColor = element.properties.headerBackgroundColor || '#ffffff';
+      const textColor = element.properties.headerTextColor || '#1f2937';
+      const padding = element.properties.headerPadding || 16;
+      const showBottomBorder = element.properties.showBottomBorder !== false;
+      const headerLayout = element.properties.headerLayout || 'logo-left';
+      const alignment = element.properties.alignment || 'left';
+      
+      // Determine text alignment style
+      const textAlignStyle = alignment === 'center' ? 'center' : alignment === 'right' ? 'right' : 'left';
+      
+      return (
+        <View style={[
+          styles.documentHeader, 
+          { 
+            width: widthPercent, 
+            backgroundColor,
+            padding,
+            borderBottomWidth: showBottomBorder ? 2 : 0,
+            borderBottomColor: '#0891b2',
+            borderBottomStyle: 'solid',
+            flexDirection: headerLayout === 'logo-right' ? 'row-reverse' : 'row',
+            alignItems: 'flex-start',
+          }
+        ]}>
+          {/* Logo - works with base64 data URLs or CORS-enabled URLs */}
+          {logoSrc && (
+            <View style={{ marginRight: headerLayout === 'logo-right' ? 0 : 16, marginLeft: headerLayout === 'logo-right' ? 16 : 0 }}>
+              <Image 
+                src={logoSrc}
+                style={{ 
+                  width: logoWidth, 
+                  height: logoHeight, 
+                  objectFit: 'contain',
+                }}
+                cache={false}
+              />
+            </View>
+          )}
+          
+          {/* Doctor Info */}
+          <View style={[styles.documentHeaderInfo, { alignItems: alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start' }]}>
+            {showDoctorName && (
+              <Text style={[styles.documentHeaderName, { color: textColor, textAlign: textAlignStyle }]}>{doctorNameValue}</Text>
+            )}
+            {showDesignation && designation && (
+              <Text style={[styles.documentHeaderDesignation, { color: textColor, textAlign: textAlignStyle }]}>{designation}</Text>
+            )}
+            {showEducation && education && (
+              <Text style={[styles.documentHeaderEducation, { color: textColor, textAlign: textAlignStyle }]}>{education}</Text>
+            )}
+            {(showPhone && phone) || (showEmail && email) ? (
+              <View style={[styles.documentHeaderContact, { justifyContent: alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start' }]}>
+                {showPhone && phone && (
+                  <Text style={[styles.documentHeaderContactText, { color: textColor }]}>Tel: {phone}</Text>
+                )}
+                {showEmail && email && (
+                  <Text style={[styles.documentHeaderContactText, { color: textColor }]}>Email: {email}</Text>
+                )}
+              </View>
+            ) : null}
+          </View>
+        </View>
+      );
     }
 
     // Handle footer elements
@@ -335,6 +503,30 @@ export function BuilderPDFDocument({
       )
     }
     
+    // Handle patient info elements
+    if (['patientName', 'patientEmail', 'patientPhone', 'patientAddress', 'patientAge', 'patientGender', 'patientBloodGroup'].includes(element.type)) {
+      // These elements are display-only and render patient data from prefillData
+      const value = getPatientInfoValue(element);
+      const showLabel = element.properties.showLabel !== false;
+      const fontWeight = element.properties.fontWeight || 'normal';
+      const fontSize = element.properties.fontSize || 'medium';
+      const alignment = element.properties.alignment || 'left';
+      
+      const fontWeightStyle = fontWeight === 'bold' || fontWeight === 'semibold' ? 'bold' : 'normal';
+      const fontSizeNum = fontSize === 'large' ? 14 : fontSize === 'small' ? 10 : 12;
+      
+      return (
+        <View style={[styles.patientInfoContainer, { width: widthPercent, alignItems: alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start' }]}>
+          {showLabel && (
+            <Text style={styles.patientInfoLabel}>{element.label}:</Text>
+          )}
+          <Text style={[styles.patientInfoValue, { fontWeight: fontWeightStyle, fontSize: fontSizeNum, textAlign: alignment }]}>
+            {value}
+          </Text>
+        </View>
+      );
+    }
+    
     // Regular fields
     const value = renderFieldValue(element)
     const isCalculated = element.type === 'calculated'
@@ -377,32 +569,55 @@ export function BuilderPDFDocument({
   }
 
   // Calculate rows dynamically based on widths (mimics CSS Grid behavior)
-  const rows = calculateGridRows(elements)
+  // Separate header and footer elements from content elements
+  const documentHeaders = elements.filter(el => el.type === 'documentHeader')
+  const footerElements = elements.filter(el => el.type === 'footer')
+  const contentElements = elements.filter(el => el.type !== 'documentHeader' && el.type !== 'footer')
+  
+  const rows = calculateGridRows(contentElements)
 
   return (
     <Document title={title}>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>
-            Patient: {patientName}
-            {clinicName && ` • ${clinicName}`}
-          </Text>
-        </View>
+        {/* Document Headers - Always at the top */}
+        {documentHeaders.length > 0 ? (
+          documentHeaders.map((headerEl, idx) => (
+            <View key={`doc-header-${idx}`} style={{ marginBottom: 15 }}>
+              {renderSingleElement(headerEl, '100%')}
+            </View>
+          ))
+        ) : (
+          /* Default Header if no documentHeader element */
+          <View style={styles.header}>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.subtitle}>
+              Patient: {patientName}
+              {clinicName && ` • ${clinicName}`}
+            </Text>
+          </View>
+        )}
 
         {/* Form Fields - Rendered with Grid Layout */}
-        <View style={styles.section}>
+        <View style={[styles.section, { flexGrow: 1 }]}>
           {rows.map((rowData, index) => renderRow(rowData, index))}
         </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text>
-            Generated on {new Date(createdAt).toLocaleDateString()} at {new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            {doctorName && ` • ${doctorName}`}
-          </Text>
-        </View>
+        {/* Custom Footer Elements - Always at the bottom */}
+        {footerElements.length > 0 ? (
+          footerElements.map((footerEl, idx) => (
+            <View key={`footer-${idx}`} style={{ marginTop: 'auto' }}>
+              {renderSingleElement(footerEl, '100%')}
+            </View>
+          ))
+        ) : (
+          /* Default Footer if no footer element */
+          <View style={styles.footer}>
+            <Text>
+              Generated on {new Date(createdAt).toLocaleDateString()} at {new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {doctorName && ` • ${doctorName}`}
+            </Text>
+          </View>
+        )}
       </Page>
     </Document>
   )

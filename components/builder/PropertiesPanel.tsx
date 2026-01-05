@@ -322,6 +322,24 @@ function TypeSpecificProperties({ element, onUpdate }: PropertySectionProps) {
           <p className="mt-1.5 text-xs text-gray-500">Pre-fill field with this value</p>
         </div>
 
+        {/* Date-specific: Use current date option */}
+        {element.type === 'date' && (
+          <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={element.properties.useCurrentDate === true}
+                onChange={(e) => handlePropertyChange('useCurrentDate', e.target.checked)}
+                className="w-5 h-5 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-900">Use current date as default</span>
+                <p className="text-xs text-gray-500 mt-0.5">Automatically set to today's date when creating a document</p>
+              </div>
+            </label>
+          </div>
+        )}
+
         {/* Number-specific */}
         {element.type === 'number' && (
           <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -836,6 +854,278 @@ function TypeSpecificProperties({ element, onUpdate }: PropertySectionProps) {
     );
   }
 
+  // Document Header
+  if (element.type === 'documentHeader') {
+    // Handle logo file upload and convert to base64
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          handlePropertyChange('logoSrc', reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    return (
+      <>
+        {/* Logo Settings */}
+        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-200">
+          <h4 className="text-sm font-semibold text-gray-900 mb-3">Logo Settings</h4>
+          
+          {/* Logo Preview */}
+          {element.properties.logoSrc && (
+            <div className="mb-3 p-2 bg-white rounded-lg border border-gray-200">
+              <img 
+                src={element.properties.logoSrc} 
+                alt="Logo Preview" 
+                className="max-h-20 object-contain mx-auto"
+              />
+            </div>
+          )}
+          
+          {/* File Upload */}
+          <div className="mb-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Upload Logo (Recommended)
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoUpload}
+              className="w-full text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100"
+            />
+            <p className="text-xs text-gray-500 mt-1">Upload image for best PDF compatibility</p>
+          </div>
+
+          {/* Or URL Input */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Or Enter Logo URL
+            </label>
+            <input
+              type="text"
+              value={element.properties.logoSrc?.startsWith('data:') ? '' : (element.properties.logoSrc || '')}
+              onChange={(e) => handlePropertyChange('logoSrc', e.target.value)}
+              className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              placeholder="https://example.com/logo.png"
+            />
+            <p className="text-xs text-gray-500 mt-1.5">Note: URL may not work in PDF due to CORS</p>
+          </div>
+
+          {/* Clear Logo */}
+          {element.properties.logoSrc && (
+            <button
+              type="button"
+              onClick={() => handlePropertyChange('logoSrc', '')}
+              className="mt-2 text-sm text-red-600 hover:text-red-700"
+            >
+              Remove Logo
+            </button>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Width (px)</label>
+              <input
+                type="number"
+                min={40}
+                max={200}
+                value={element.properties.logoWidth || 80}
+                onChange={(e) => handlePropertyChange('logoWidth', Number(e.target.value) || 80)}
+                className="w-full min-h-[44px] px-3 py-2.5 border border-gray-300 rounded-lg text-base touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Height (px)</label>
+              <input
+                type="number"
+                min={40}
+                max={200}
+                value={element.properties.logoHeight || 80}
+                onChange={(e) => handlePropertyChange('logoHeight', Number(e.target.value) || 80)}
+                className="w-full min-h-[44px] px-3 py-2.5 border border-gray-300 rounded-lg text-base touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Doctor Information */}
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+          <h4 className="text-sm font-semibold text-gray-900 mb-3">Doctor Information</h4>
+          
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Doctor Name</label>
+            <input
+              type="text"
+              value={element.properties.doctorName || ''}
+              onChange={(e) => handlePropertyChange('doctorName', e.target.value)}
+              className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              placeholder="Dr. John Smith"
+            />
+          </div>
+
+          <div className="mt-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Designation</label>
+            <input
+              type="text"
+              value={element.properties.designation || ''}
+              onChange={(e) => handlePropertyChange('designation', e.target.value)}
+              className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              placeholder="Consultant Physician"
+            />
+          </div>
+
+          <div className="mt-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Education/Qualifications</label>
+            <input
+              type="text"
+              value={element.properties.education || ''}
+              onChange={(e) => handlePropertyChange('education', e.target.value)}
+              className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              placeholder="MBBS, MD"
+            />
+          </div>
+
+          <div className="mt-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+            <input
+              type="text"
+              value={element.properties.phone || ''}
+              onChange={(e) => handlePropertyChange('phone', e.target.value)}
+              className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              placeholder="+91 1234567890"
+            />
+          </div>
+
+          <div className="mt-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              value={element.properties.email || ''}
+              onChange={(e) => handlePropertyChange('email', e.target.value)}
+              className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              placeholder="doctor@clinic.com"
+            />
+          </div>
+        </div>
+
+        {/* Layout */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Header Layout</label>
+          <select
+            value={element.properties.headerLayout || 'logo-left'}
+            onChange={(e) => handlePropertyChange('headerLayout', e.target.value)}
+            className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base bg-white touch-manipulation focus:ring-2 focus:ring-cyan-500"
+          >
+            <option value="logo-left">Logo Left - Info Right</option>
+            <option value="logo-right">Logo Right - Info Left</option>
+            <option value="logo-center">Logo Center - Info Below</option>
+            <option value="two-column">Two Column Layout</option>
+          </select>
+        </div>
+
+        {/* Display Toggles */}
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Show/Hide Fields</label>
+          
+          {[
+            { key: 'showDoctorName', label: 'Show Doctor Name' },
+            { key: 'showDesignation', label: 'Show Designation' },
+            { key: 'showEducation', label: 'Show Education' },
+            { key: 'showPhone', label: 'Show Phone' },
+            { key: 'showEmail', label: 'Show Email' },
+          ].map((toggle) => (
+            <label key={toggle.key} className="flex items-center gap-3 cursor-pointer min-h-[44px] p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors touch-manipulation">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={element.properties[toggle.key] !== false}
+                  onChange={(e) => handlePropertyChange(toggle.key, e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-cyan-500 rounded-full peer peer-checked:bg-cyan-600 transition-all"></div>
+                <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform peer-checked:translate-x-5"></div>
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-gray-900">{toggle.label}</div>
+              </div>
+            </label>
+          ))}
+        </div>
+
+        {/* Styling */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Background Color</label>
+          <div className="flex gap-2 items-center">
+            <input
+              type="color"
+              value={element.properties.headerBackgroundColor || '#ffffff'}
+              onChange={(e) => handlePropertyChange('headerBackgroundColor', e.target.value)}
+              className="w-12 h-12 border-2 border-gray-300 rounded-lg cursor-pointer touch-manipulation"
+            />
+            <input
+              type="text"
+              value={element.properties.headerBackgroundColor || '#ffffff'}
+              onChange={(e) => handlePropertyChange('headerBackgroundColor', e.target.value)}
+              className="flex-1 min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg font-mono text-sm touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              placeholder="#ffffff"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Text Color</label>
+          <div className="flex gap-2 items-center">
+            <input
+              type="color"
+              value={element.properties.headerTextColor || '#1f2937'}
+              onChange={(e) => handlePropertyChange('headerTextColor', e.target.value)}
+              className="w-12 h-12 border-2 border-gray-300 rounded-lg cursor-pointer touch-manipulation"
+            />
+            <input
+              type="text"
+              value={element.properties.headerTextColor || '#1f2937'}
+              onChange={(e) => handlePropertyChange('headerTextColor', e.target.value)}
+              className="flex-1 min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg font-mono text-sm touch-manipulation focus:ring-2 focus:ring-cyan-500"
+              placeholder="#1f2937"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Padding (px)</label>
+          <input
+            type="number"
+            min={0}
+            max={50}
+            value={element.properties.headerPadding || 16}
+            onChange={(e) => handlePropertyChange('headerPadding', Number(e.target.value) || 16)}
+            className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base touch-manipulation focus:ring-2 focus:ring-cyan-500"
+          />
+        </div>
+
+        <label className="flex items-center gap-3 cursor-pointer min-h-[44px] p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors touch-manipulation">
+          <div className="relative">
+            <input
+              type="checkbox"
+              checked={element.properties.showBottomBorder !== false}
+              onChange={(e) => handlePropertyChange('showBottomBorder', e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-cyan-500 rounded-full peer peer-checked:bg-cyan-600 transition-all"></div>
+            <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform peer-checked:translate-x-5"></div>
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-medium text-gray-900">Show Bottom Border</div>
+            <div className="text-xs text-gray-500">Separator line below header</div>
+          </div>
+        </label>
+      </>
+    );
+  }
+
   // Medical History
   if (element.type === 'medicalHistory') {
     return (
@@ -910,6 +1200,140 @@ function TypeSpecificProperties({ element, onUpdate }: PropertySectionProps) {
               <span>Leave a blank line between paragraphs</span>
             </li>
           </ul>
+        </div>
+      </>
+    );
+  }
+
+  // Patient Information Elements
+  if (['patientName', 'patientEmail', 'patientPhone', 'patientAddress', 'patientAge', 'patientGender', 'patientBloodGroup'].includes(element.type)) {
+    return (
+      <>
+        {/* Info message */}
+        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg text-xs text-blue-900 border border-blue-200">
+          <strong className="flex items-center gap-1.5 text-sm mb-2">
+            <Zap className="w-4 h-4" />
+            Auto-Filled Field
+          </strong>
+          <p>This field is automatically populated with patient data and cannot be edited by users. Configure display options below.</p>
+        </div>
+
+        {/* Show Label */}
+        <label className="flex items-center gap-3 cursor-pointer min-h-[44px] p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors touch-manipulation">
+          <div className="relative">
+            <input
+              type="checkbox"
+              checked={element.properties.showLabel !== false}
+              onChange={(e) => handlePropertyChange('showLabel', e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-cyan-500 rounded-full peer peer-checked:bg-cyan-600 transition-all"></div>
+            <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform peer-checked:translate-x-5"></div>
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-medium text-gray-900">Show Label</div>
+            <div className="text-xs text-gray-500">Display field label above or beside value</div>
+          </div>
+        </label>
+
+        {/* Label Position */}
+        {element.properties.showLabel !== false && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Label Position
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: 'top', label: 'Top' },
+                { value: 'left', label: 'Left' },
+                { value: 'inline', label: 'Inline' }
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handlePropertyChange('labelPosition', option.value)}
+                  className={`min-h-[44px] py-3 px-3 rounded-lg border-2 font-medium transition-all touch-manipulation ${
+                    element.properties.labelPosition === option.value
+                      ? 'border-cyan-500 bg-cyan-50 text-cyan-700 shadow-sm'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-600'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Font Weight */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Font Weight
+          </label>
+          <select
+            value={element.properties.fontWeight || 'normal'}
+            onChange={(e) => handlePropertyChange('fontWeight', e.target.value)}
+            className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base bg-white touch-manipulation focus:ring-2 focus:ring-cyan-500"
+          >
+            <option value="normal">Normal</option>
+            <option value="medium">Medium</option>
+            <option value="semibold">Semi-Bold</option>
+            <option value="bold">Bold</option>
+          </select>
+        </div>
+
+        {/* Font Size */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Font Size
+          </label>
+          <select
+            value={element.properties.fontSize || 'medium'}
+            onChange={(e) => handlePropertyChange('fontSize', e.target.value)}
+            className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base bg-white touch-manipulation focus:ring-2 focus:ring-cyan-500"
+          >
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+
+        {/* Text Transform */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Text Transform
+          </label>
+          <select
+            value={element.properties.textTransform || 'none'}
+            onChange={(e) => handlePropertyChange('textTransform', e.target.value)}
+            className="w-full min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-base bg-white touch-manipulation focus:ring-2 focus:ring-cyan-500"
+          >
+            <option value="none">None</option>
+            <option value="uppercase">UPPERCASE</option>
+            <option value="lowercase">lowercase</option>
+            <option value="capitalize">Capitalize Each Word</option>
+          </select>
+        </div>
+
+        {/* Alignment */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Text Alignment
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {['left', 'center', 'right'].map((align) => (
+              <button
+                key={align}
+                onClick={() => handlePropertyChange('alignment', align)}
+                className={`min-h-[44px] py-3 px-3 rounded-lg border-2 font-medium transition-all touch-manipulation ${
+                  element.properties.alignment === align
+                    ? 'border-cyan-500 bg-cyan-50 text-cyan-700 shadow-sm'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-600'
+                }`}
+              >
+                {align.charAt(0).toUpperCase() + align.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </>
     );

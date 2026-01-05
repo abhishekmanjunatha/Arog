@@ -20,7 +20,14 @@ import {
   Heading,
   Image,
   FileText,
-  ClipboardList
+  ClipboardList,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  UserCircle,
+  Droplet,
+  Building2
 } from 'lucide-react';
 
 interface ElementItem {
@@ -80,6 +87,12 @@ const ELEMENT_ITEMS: ElementItem[] = [
     icon: <Heading className="w-5 h-5" />,
   },
   {
+    type: 'documentHeader',
+    label: 'Document Header',
+    description: 'Logo, doctor info & contact',
+    icon: <Building2 className="w-5 h-5" />,
+  },
+  {
     type: 'divider',
     label: 'Divider',
     description: 'Visual separator',
@@ -102,6 +115,49 @@ const ELEMENT_ITEMS: ElementItem[] = [
     label: 'Medical History',
     description: 'Rich text with bullets & lists',
     icon: <ClipboardList className="w-5 h-5" />,
+  },
+  // Patient Information Elements (auto-filled display fields)
+  {
+    type: 'patientName',
+    label: 'Patient Name',
+    description: 'Auto-filled patient name',
+    icon: <User className="w-5 h-5" />,
+  },
+  {
+    type: 'patientEmail',
+    label: 'Patient Email',
+    description: 'Auto-filled email address',
+    icon: <Mail className="w-5 h-5" />,
+  },
+  {
+    type: 'patientPhone',
+    label: 'Patient Phone',
+    description: 'Auto-filled phone number',
+    icon: <Phone className="w-5 h-5" />,
+  },
+  {
+    type: 'patientAddress',
+    label: 'Patient Address',
+    description: 'Auto-filled address',
+    icon: <MapPin className="w-5 h-5" />,
+  },
+  {
+    type: 'patientAge',
+    label: 'Patient Age',
+    description: 'Auto-filled age',
+    icon: <Calendar className="w-5 h-5" />,
+  },
+  {
+    type: 'patientGender',
+    label: 'Patient Gender',
+    description: 'Auto-filled gender',
+    icon: <UserCircle className="w-5 h-5" />,
+  },
+  {
+    type: 'patientBloodGroup',
+    label: 'Blood Group',
+    description: 'Auto-filled blood group',
+    icon: <Droplet className="w-5 h-5" />,
   },
 ];
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from './Modal'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from '@/lib/toast'
 import { updateAppointment, createAppointment } from '@/app/actions/appointments'
+import { PatientSelector } from '@/components/appointments/PatientSelector'
+import { createClient } from '@/lib/supabase/client'
 
 interface Appointment {
   id: string
@@ -50,6 +52,47 @@ export function AppointmentFormModal({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [selectedPatientId, setSelectedPatientId] = useState<string>(preSelectedPatientId || '')
+  const [currentPatients, setCurrentPatients] = useState<Patient[]>(patients)
+
+  // Update selected patient when preSelectedPatientId changes
+  useEffect(() => {
+    if (preSelectedPatientId) {
+      setSelectedPatientId(preSelectedPatientId)
+    }
+  }, [preSelectedPatientId])
+
+  // Fetch fresh patient list when modal opens
+  useEffect(() => {
+    if (isOpen && mode === 'create') {
+      refreshPatientList()
+    }
+  }, [isOpen, mode])
+
+  const refreshPatientList = async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user) {
+      const { data: patientsData } = await supabase
+        .from('patients')
+        .select('id, name')
+        .eq('doctor_id', user.id)
+        .eq('is_active', true)
+        .order('name')
+
+      if (patientsData) {
+        setCurrentPatients(patientsData)
+      }
+    }
+  }
+
+  const handlePatientAdded = async (newPatientId?: string) => {
+    if (newPatientId) {
+      await refreshPatientList()
+      setSelectedPatientId(newPatientId)
+    }
+  }
 
   // Parse appointment date and time (only for edit mode)
   const dateStr = appointment ? new Date(appointment.appointment_date).toISOString().split('T')[0] : ''
@@ -98,24 +141,14 @@ export function AppointmentFormModal({
         )}
 
         {mode === 'create' && (
-          <div className="space-y-2">
-            <Label htmlFor="patient_id" className="text-sm font-medium">Patient *</Label>
-            <select
-              id="patient_id"
-              name="patient_id"
-              defaultValue={preSelectedPatientId || ''}
-              required
-              disabled={isPending}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-            >
-              <option value="">Select a patient</option>
-              {patients.map((patient) => (
-                <option key={patient.id} value={patient.id}>
-                  {patient.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <PatientSelector
+            patients={currentPatients}
+            selectedPatientId={selectedPatientId}
+            onPatientSelect={setSelectedPatientId}
+            onPatientAdded={handlePatientAdded}
+            disabled={isPending}
+            required
+          />
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
